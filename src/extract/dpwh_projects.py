@@ -131,6 +131,12 @@ def run_extract(settings, environ=None, max_pages=None, resume_run_id=None, clie
     )
     run.write_metadata(metadata)
 
+    fetch_stats = bool(source.get("fetch_stats", True))
+    metadata["stats_fetch_enabled"] = fetch_stats
+    run.write_metadata(metadata)
+    if not fetch_stats:
+        log("Stats fetch disabled in config/settings.yml; see docs/reconciliation_baseline.md")
+
     pages_this_session = 0
     records_this_session = 0
     total_pages = metadata.get("total_pages_reported")
@@ -139,7 +145,7 @@ def run_extract(settings, environ=None, max_pages=None, resume_run_id=None, clie
     stop_reason = None
 
     try:
-        if STATS_FILE not in done:
+        if fetch_stats and STATS_FILE not in done:
             stats_url = f"{base_url}{source['stats_path']}"
             response = client.get(stats_url)
             require_ok(response, stats_url)

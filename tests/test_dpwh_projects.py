@@ -52,8 +52,9 @@ def make_client(routes):
     return settings, client, session
 
 
-def run(tmp_path, routes, **kwargs):
+def run(tmp_path, routes, fetch_stats=True, **kwargs):
     settings, client, session = make_client(routes)
+    settings.raw["source"]["fetch_stats"] = fetch_stats
     result = dpwh_projects.run_extract(settings, environ=ENVIRON, client=client, raw_root=tmp_path, now=TickingNow(), log=lambda message: None, **kwargs)
     return result, session
 
@@ -144,3 +145,13 @@ def test_not_found_stats_stops_without_writing(tmp_path):
     assert status == "stopped"
     assert "HTTP 404" in raw_run.read_metadata()["stop_reason"]
     assert raw_run.verified_files() == set()
+
+
+def test_stats_can_be_disabled(tmp_path):
+    routes = base_routes()
+    routes[STATS_URL] = [FakeResponse(403, b"<html>blocked</html>", {"content-type": "text/html"})]
+    (raw_run, status), session = run(tmp_path, routes, fetch_stats=False, max_pages=1)
+    assert status == "capped"
+    assert STATS_URL not in [url for url, _ in session.calls]
+    assert raw_run.verified_files() == {"projects/page_00001.json"}
+    assert raw_run.read_metadata()["stats_fetch_enabled"] is False
