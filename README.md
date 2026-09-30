@@ -6,7 +6,7 @@ Group Zeta's modular, rerun-safe data pipeline for DPWH infrastructure project d
 
 ## Data source and scraping ethics
 
-The data comes from the public DPWH transparency portal (`transparency.dpwh.gov.ph`). The portal is a client-rendered web app: its contracts table is filled by the browser from a public JSON API at `api.transparency.dpwh.gov.ph`. The extractor requests the same listing endpoint the portal's own front end uses (`/projects?page=N&limit=50`) plus the `/ai/stats` summary, and nothing else.
+The data comes from the public DPWH transparency portal (`transparency.dpwh.gov.ph`). The portal is a client-rendered web app: its contracts table is filled by the browser from a public JSON API at `api.transparency.dpwh.gov.ph`. The extractor requests only the listing endpoint the portal's own front end uses (`/projects?page=N&limit=50`).
 
 Checks made before collection (30 September 2026):
 
@@ -15,7 +15,7 @@ Checks made before collection (30 September 2026):
 | `api.transparency.dpwh.gov.ph/robots.txt` | HTTP 404, no crawler rules published for the API host |
 | `transparency.dpwh.gov.ph/robots.txt` | Written for search engines; `/api/` is listed under private/admin areas of the portal host and `?page=` under duplicate-content rules; crawl delay 0.1 s |
 | Terms of use or data policy | None published on the portal |
-| Bot protection | Cloudflare is present; requests with our identifying user-agent were not challenged |
+| Bot protection | Cloudflare is present. The first extractor run (30 September 2026) was blocked with HTTP 403 on `/ai/stats`; the extractor stopped immediately. Automatic stats collection was then disabled, and the browser-captured summary in `docs/reconciliation_baseline.md` is used instead |
 
 How the extractor behaves:
 
@@ -37,7 +37,7 @@ Each run writes to `data/raw/run_id=<UTC timestamp>/`:
 
 | File | Content |
 | --- | --- |
-| `stats.json` | Portal summary counts, used later to reconcile totals |
+| `stats.json` | Portal summary counts (only when `fetch_stats` is enabled; currently disabled) |
 | `projects/page_00001.json`, ... | Listing responses exactly as received |
 | `manifest.jsonl` | One line per stored file: URL, HTTP status, size, SHA-256, UTC fetch time |
 | `run.json` | Run metadata: status, stop reason, reported totals, request counts, robots.txt results |
