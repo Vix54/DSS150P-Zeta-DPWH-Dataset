@@ -10,6 +10,7 @@ from tests.fakes import FakeClock, FakeResponse, FakeSession
 
 API = "https://api.transparency.dpwh.gov.ph"
 ENVIRON = {"SCRAPER_CONTACT": "team@example.test"}
+STATS_URL = API + load_settings().raw["source"]["stats_path"]
 
 
 def record(contract_id):
@@ -28,7 +29,7 @@ def page_url(page):
 def base_routes():
     return {
         f"{API}/robots.txt": [FakeResponse(404)],
-        f"{API}/stats": [FakeResponse(200, b'{"status": 200, "data": {"totalProjects": 3}}')],
+        STATS_URL: [FakeResponse(200, b'{"status": 200, "data": {"totalProjects": 3}}')],
         page_url(1): [FakeResponse(200, page_body([record("A1"), record("A2")], 1, 2, 3))],
         page_url(2): [FakeResponse(200, page_body([record("B1")], 2, 2, 3))],
     }
@@ -98,7 +99,7 @@ def test_max_pages_caps_then_resume_fetches_only_missing(tmp_path):
     assert status == "complete"
     fetched = [url for url, _ in session.calls]
     assert page_url(1) not in fetched
-    assert f"{API}/stats" not in fetched
+    assert STATS_URL not in fetched
     assert page_url(2) in fetched
     assert len(resumed.manifest_entries()) == 3
 
@@ -134,3 +135,12 @@ def test_empty_page_ends_run(tmp_path):
     (raw_run, status), _ = run(tmp_path, routes)
     assert status == "complete"
     assert raw_run.verified_files() == {"stats.json"}
+
+
+def test_not_found_stats_stops_without_writing(tmp_path):
+    routes = base_routes()
+    routes[STATS_URL] = [FakeResponse(404, b'{"message": "Route GET:/stats not found", "statusCode": 404}')]
+    (raw_run, status), _ = run(tmp_path, routes)
+    assert status == "stopped"
+    assert "HTTP 404" in raw_run.read_metadata()["stop_reason"]
+    assert raw_run.verified_files() == set()

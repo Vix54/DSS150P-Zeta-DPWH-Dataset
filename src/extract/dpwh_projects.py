@@ -87,6 +87,11 @@ def build_client(settings, environ, session=None, clock=None, sleep=None):
     )
 
 
+def require_ok(response, url):
+    if response.status_code != 200:
+        raise StopScraping(f"HTTP {response.status_code} from {url}; expected 200, stopping for review")
+
+
 def parse_json(content, url):
     try:
         return json.loads(content)
@@ -137,6 +142,7 @@ def run_extract(settings, environ=None, max_pages=None, resume_run_id=None, clie
         if STATS_FILE not in done:
             stats_url = f"{base_url}{source['stats_path']}"
             response = client.get(stats_url)
+            require_ok(response, stats_url)
             parse_json(response.content, stats_url)
             run.write(STATS_FILE, response.content, stats_url, response.status_code, now())
             log(f"Saved {STATS_FILE} ({len(response.content)} bytes)")
@@ -161,6 +167,7 @@ def run_extract(settings, environ=None, max_pages=None, resume_run_id=None, clie
 
             url = f"{base_url}{source['projects_path']}?page={page}&limit={limit}"
             response = client.get(url)
+            require_ok(response, url)
             payload = parse_json(response.content, url)
             records = find_records(payload)
             if records is None:
