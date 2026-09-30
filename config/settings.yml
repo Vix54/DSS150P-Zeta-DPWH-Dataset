@@ -21,12 +21,20 @@ database:
   schema_audit: audit
   connect_timeout_seconds: 5
 
+source:
+  api_base_url: https://api.transparency.dpwh.gov.ph
+  projects_path: /projects
+  stats_path: /stats
+  page_limit: 50
+  user_agent_product: GroupZeta-DSS150P-student-project/0.2
+
 scraper:
   respect_robots_txt: true
   request_delay_seconds: 1.5
   timeout_seconds: 30
   max_retries: 3
   backoff_seconds: 5
+  stop_on_status: [401, 403]
 
 required_packages:
   - pandas
@@ -36,3 +44,4 @@ required_packages:
   - psycopg2-binary
   - pyyaml
   - python-dotenv
+  - protego

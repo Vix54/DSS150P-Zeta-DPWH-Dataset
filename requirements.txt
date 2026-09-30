@@ -5,4 +5,5 @@ SQLAlchemy==2.1.1
 psycopg2-binary==2.9.13
 PyYAML==6.0.3
 python-dotenv==1.2.3
+protego==0.7.0
 pytest==9.1.1
