@@ -154,6 +154,26 @@ def validate_env(args):
     return report(results)
 
 
+def extract(args):
+    from src.extract.dpwh_projects import ExtractError, run_extract
+    from src.extract.raw_store import RawStoreError
+
+    try:
+        settings = load_settings()
+        _, status = run_extract(settings, max_pages=args.max_pages, resume_run_id=args.resume)
+    except (ConfigError, ExtractError, RawStoreError) as exc:
+        print(f"[FAIL] {exc}")
+        return 1
+    return 0 if status in ("complete", "capped") else 1
+
+
+def positive_int(value):
+    number = int(value)
+    if number < 1:
+        raise argparse.ArgumentTypeError("must be 1 or greater")
+    return number
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="python -m src.cli",
@@ -170,6 +190,23 @@ def build_parser():
         help="Also attempt a PostgreSQL connection using the .env settings.",
     )
     validate_parser.set_defaults(handler=validate_env)
+    extract_parser = subparsers.add_parser(
+        "extract",
+        help="Fetch DPWH project listing pages politely and store them unchanged in the raw layer.",
+    )
+    extract_parser.add_argument(
+        "--max-pages",
+        type=positive_int,
+        default=None,
+        help="Stop after this many new pages in this session (use a small number for test runs).",
+    )
+    extract_parser.add_argument(
+        "--resume",
+        metavar="RUN_ID",
+        default=None,
+        help="Continue an earlier run, skipping pages already stored and verified.",
+    )
+    extract_parser.set_defaults(handler=extract)
     return parser
 
 
