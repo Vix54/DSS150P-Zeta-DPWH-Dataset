@@ -1,0 +1,38 @@
+project:
+  name: dss150p-zeta-dpwh-pipeline
+  python_min_version: "3.11"
+  timezone: UTC
+
+paths:
+  source: data/source
+  raw: data/raw
+  staging: data/staging
+  curated: data/curated
+  quarantine: data/quarantine
+  benchmarks: data/benchmarks
+  partitioned: data/partitioned
+  sql_init: sql/init
+
+logging:
+  level: INFO
+
+database:
+  schema_curated: curated
+  schema_audit: audit
+  connect_timeout_seconds: 5
+
+scraper:
+  respect_robots_txt: true
+  request_delay_seconds: 1.5
+  timeout_seconds: 30
+  max_retries: 3
+  backoff_seconds: 5
+
+required_packages:
+  - pandas
+  - pyarrow
+  - requests
+  - sqlalchemy
+  - psycopg2-binary
+  - pyyaml
+  - python-dotenv

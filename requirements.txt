@@ -1,0 +1,8 @@
+pandas==3.0.6
+pyarrow==25.0.1
+requests==2.34.2
+SQLAlchemy==2.1.1
+psycopg2-binary==2.9.13
+PyYAML==6.0.3
+python-dotenv==1.2.3
+pytest==9.1.1
