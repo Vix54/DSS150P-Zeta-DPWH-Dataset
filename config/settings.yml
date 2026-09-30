@@ -24,7 +24,7 @@ database:
 source:
   api_base_url: https://api.transparency.dpwh.gov.ph
   projects_path: /projects
-  stats_path: /stats
+  stats_path: /ai/stats
   page_limit: 50
   user_agent_product: GroupZeta-DSS150P-student-project/0.2
 

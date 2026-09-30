@@ -6,7 +6,7 @@ Group Zeta's modular, rerun-safe data pipeline for DPWH infrastructure project d
 
 ## Data source and scraping ethics
 
-The data comes from the public DPWH transparency portal (`transparency.dpwh.gov.ph`). The portal is a client-rendered web app: its contracts table is filled by the browser from a public JSON API at `api.transparency.dpwh.gov.ph`. The extractor requests the same listing endpoint the portal's own front end uses (`/projects?page=N&limit=50`) plus the `/stats` summary, and nothing else.
+The data comes from the public DPWH transparency portal (`transparency.dpwh.gov.ph`). The portal is a client-rendered web app: its contracts table is filled by the browser from a public JSON API at `api.transparency.dpwh.gov.ph`. The extractor requests the same listing endpoint the portal's own front end uses (`/projects?page=N&limit=50`) plus the `/ai/stats` summary, and nothing else.
 
 Checks made before collection (30 September 2026):
 
