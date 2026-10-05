@@ -1,0 +1,2 @@
+Checksum matches the value recorded when the file was downloaded: 31892bc2bdde3ea0682562d9412b5bab4d45a0be5e5a5b4f6c9d7714b94bca5d
+Stored PSGC-2Q-2026-Publication-Datafile.xlsx (3250889 bytes) in /home/enzo/DSS150P-Zeta-DPWH-Dataset/data/raw/source=psa_psgc/run_id=20261005T231416Z
