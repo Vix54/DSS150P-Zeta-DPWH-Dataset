@@ -140,6 +140,7 @@ def make_raw_run(tmp_path, frame=None):
 
 
 def stage(tmp_path, **kwargs):
+    kwargs.setdefault("environ", {})
     return staging.run_staging(make_settings(tmp_path), now=fixed_now, log=lambda message: None, **kwargs)
 
 
@@ -332,3 +333,21 @@ def test_cli_stage_defaults():
     assert args.source == "bettergov_hf"
     assert args.run_id is None
     assert args.rebuild is False
+
+
+def test_pipeline_run_id_defaults_to_a_manual_id(tmp_path):
+    run = make_raw_run(tmp_path)
+    report, _ = stage(tmp_path)
+    contracts, members, rejected = outputs(tmp_path, run.run_id)
+    assert report["pipeline_run_id"] == "manual__20261005T080000Z"
+    assert set(contracts["pipeline_run_id"]) == {"manual__20261005T080000Z"}
+    assert set(members["pipeline_run_id"]) == {"manual__20261005T080000Z"}
+    assert set(rejected["pipeline_run_id"]) == {"manual__20261005T080000Z"}
+
+
+def test_pipeline_run_id_comes_from_the_environment(tmp_path):
+    run = make_raw_run(tmp_path)
+    report, _ = stage(tmp_path, environ={"PIPELINE_RUN_ID": "scheduled__20261006T020000"})
+    contracts, _, _ = outputs(tmp_path, run.run_id)
+    assert report["pipeline_run_id"] == "scheduled__20261006T020000"
+    assert set(contracts["pipeline_run_id"]) == {"scheduled__20261006T020000"}
