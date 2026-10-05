@@ -2,7 +2,7 @@
 
 Group Zeta's modular, rerun-safe data pipeline for DPWH infrastructure project data, built to the course's Modular Data Pipeline Specification (Python, PostgreSQL, Parquet, Docker Compose, Apache Airflow).
 
-**Status:** Milestone 1 complete (environment validated on WSL and in Docker). Milestone 2 in progress: raw ingestion of the primary source is complete; staging is next.
+**Status:** Milestone 1 complete (environment validated on WSL and in Docker). Milestone 2 in progress: raw ingestion of the primary source is complete (v0.2.0); staging is implemented; curated layer and PostgreSQL load are next.
 
 ## Data sources
 
@@ -62,6 +62,24 @@ Each source has its own lane, so sources never mix before staging:
 | --- | --- |
 | `data/raw/source=bettergov_hf/run_id=.../` | Primary source file, unchanged |
 | `data/raw/source=dpwh_api/run_id=.../` | API extractor runs (blocked) |
+
+## Staging (Milestone 2)
+
+```bash
+python -m src.cli stage
+python -m src.cli stage --rebuild
+```
+
+Staging reads the latest raw run of the primary source (checksum verified first), applies the rules in `docs/data_contract.md`, and writes:
+
+| Path | Content |
+| --- | --- |
+| `data/staging/source=bettergov_hf/run_id=<run>/contracts.parquet` | One typed, normalised row per contract, with `warning_codes` and lineage columns |
+| `data/staging/source=bettergov_hf/run_id=<run>/contract_contractors.parquet` | One row per contractor on a contract (joint ventures split into members) |
+| `data/staging/source=bettergov_hf/run_id=<run>/staging_report.json` | Row accounting, quarantine and warning counts, status counts, output checksums |
+| `data/quarantine/source=bettergov_hf/run_id=<run>/contracts.parquet` | Rows that cannot be used, exactly as read from raw, with `error_codes` |
+
+Only structurally broken rows (no or duplicated contract ID, unparseable numbers or dates) are quarantined. Unusual but usable rows stay in staging with warning codes so they still count in reconciliation. Every input row is either staged or quarantined. Staging the same raw run again does nothing unless `--rebuild` is given.
 
 ## Repository layout
 
