@@ -71,7 +71,12 @@ Any unparseable value in a numeric column produces `Q_BAD_NUMBER:<source column>
 | `bid_submission_deadline` | timestamp | `bidSubmissionDeadline` | As above |
 | `date_of_award` | timestamp | `dateOfAward` | As above |
 
-Any unparseable value in a date or timestamp column produces `Q_BAD_DATE:<source column>`. Values that carry a timezone offset are converted to UTC.
+Date and timestamp parsing applies to every column above, in this order:
+
+1. ISO format (for example `2022-02-24` or `2021-10-27 00:00:00.0000000`). Values that carry a timezone offset are converted to UTC.
+2. If ISO parsing fails, the second format seen in the source, `MM/DD/YYYY hh:mm:ss AM/PM` (for example `12/09/2025 12:00:00 AM`, read as 9 December 2025). The row gets `W_DATE_FORMAT_ALT:<source column>` so the month-first reading stays traceable. In the January 2026 release this format appears only in 9 For Procurement rows from one office (`25FI0067` to `25FI0076`).
+3. Any value on 1 January 1900 is a placeholder for "no date". It becomes null and the row gets `W_PLACEHOLDER_DATE:<source column>`.
+4. A value that still cannot be parsed produces `Q_BAD_DATE:<source column>`.
 
 ### Location
 
@@ -99,6 +104,7 @@ Contractor checks (warnings only):
 | `W_WINNER_NAMES_MISMATCH` | `winnerNames` differs from the names rebuilt from `contractor` (member names without their IDs, sorted ignoring punctuation and spaces, joined with ", ") |
 | `W_CONTRACTOR_ID_MISSING` | At least one member has no trailing registration ID |
 | `W_CONTRACTOR_NAME_TRUNCATED` | At least one member name has unbalanced parentheses because the source cut it short |
+| `W_CONTRACTOR_DUPLICATE_MEMBER` | The same member appears more than once in `contractor`; it is counted once |
 
 ### Bidders, components and coordinates
 
@@ -159,7 +165,7 @@ Contractor checks (warnings only):
 
 ## Contractor members table (`contract_contractors.parquet`)
 
-The source writes joint ventures as `NAME A (id) / NAME B (id)`. Each member becomes one row.
+The source writes joint ventures as `NAME A (id) / NAME B (id)`. Each member becomes one row. When the same member (same name and ID) is repeated in one contract, for example `PANAAD CONSTRUCTION (37345)` three times, it is kept once, positions are numbered after de-duplication, and the contract gets `W_CONTRACTOR_DUPLICATE_MEMBER`. The source's own `winnerNames` field lists such members once, which supports this rule. `contractor_count` and `is_joint_venture` use the de-duplicated members.
 
 | Column | Type | Content |
 | --- | --- | --- |
@@ -187,6 +193,20 @@ Rejected rows are written with every source column exactly as read from the raw 
 | `raw_run_id` | Raw run the row came from |
 | `quarantined_at_utc` | When the staging run started |
 
+## Source field limits
+
+Findings from staging the January 2026 release (raw run `20261005T154820Z`), recorded so that downstream users do not mistake them for pipeline errors:
+
+| Finding | Evidence |
+| --- | --- |
+| Contractor member names are cut at 50 characters | 12,209 of the 12,818 members flagged `name_truncated` are exactly 50 characters long, or 49 when the cut fell on a space that was trimmed. The cut usually lands inside a `(FORMERLY ...)` clause |
+| A longer limit of 100 characters is likely | The longest member name in the release is exactly 100 characters |
+| Contracts with a contractor recorded more than once | 74 contracts repeat the same member; `winnerNames` lists each once |
+| Two date formats | ISO in almost every row; `MM/DD/YYYY hh:mm:ss AM/PM` in 9 rows |
+| 1 January 1900 used as "no date" | Seen in the 9 rows above; the rule applies to every date column |
+
+These limits come from the publisher's data, not from staging. Truncated names are never completed or guessed.
+
 ## Code reference
 
 | Code | Effect | Meaning |
@@ -201,6 +221,8 @@ Rejected rows are written with every source column exactly as read from the raw 
 | `W_NEGATIVE_AMOUNT:<column>` | Warning | Negative amount |
 | `W_COORDINATES_PARTIAL`, `W_COORDINATES_OUTSIDE_PH` | Warning | Incomplete or out-of-country coordinates |
 | `W_DATE_ORDER:<column>` | Warning | End date earlier than start date |
+| `W_DATE_FORMAT_ALT:<column>` | Warning | Date read from the `MM/DD/YYYY hh:mm:ss AM/PM` format |
+| `W_PLACEHOLDER_DATE:<column>` | Warning | Date was the 1 January 1900 placeholder and is stored as null |
 | `W_DUPLICATE_COLUMN_MISMATCH:<column>` | Warning | A dropped duplicate column disagrees with its original |
 | `W_BAD_BOOLEAN:<column>` | Warning | Boolean value not recognised |
 | `W_CONTRACTOR_*`, `W_WINNER_NAMES_*` | Warning | See the contractor checks above |
