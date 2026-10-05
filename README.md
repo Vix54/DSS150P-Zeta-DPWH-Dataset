@@ -2,11 +2,32 @@
 
 Group Zeta's modular, rerun-safe data pipeline for DPWH infrastructure project data, built to the course's Modular Data Pipeline Specification (Python, PostgreSQL, Parquet, Docker Compose, Apache Airflow).
 
-**Status:** Milestone 1 complete (environment validated on WSL and in Docker). Milestone 2 in progress (extraction).
+**Status:** Milestone 1 complete (environment validated on WSL and in Docker). Milestone 2 in progress: raw ingestion of the primary source is complete; staging is next.
 
-## Data source and scraping ethics
+## Data sources
 
-The data comes from the public DPWH transparency portal (`transparency.dpwh.gov.ph`). The portal is a client-rendered web app: its contracts table is filled by the browser from a public JSON API at `api.transparency.dpwh.gov.ph`. The extractor requests only the listing endpoint the portal's own front end uses (`/projects?page=N&limit=50`).
+The pipeline's primary source is the **BetterGov.ph DPWH Infrastructure Transparency Dataset**, a CC0-licensed release of DPWH transparency portal data published on Hugging Face (revision `648ea96`, January 2026, 248,421 contracts). Full provenance, the publisher's stated collection method, and the admission rules for any further source are in `docs/sources.md`.
+
+How the project arrived there:
+
+1. The DPWH transparency portal (`transparency.dpwh.gov.ph`) loads its data from a public JSON API at `api.transparency.dpwh.gov.ph`. The team built a polite extractor for it, described below.
+2. On its first requests (30 September 2026) the extractor was blocked by Cloudflare bot protection with HTTP 403, on `/ai/stats` and then on `/projects`. It stopped each time, as designed, and automated collection from the API was ended. The team did not attempt to get around the block.
+3. The portal's summary figures were captured once by hand in a browser and recorded in `docs/reconciliation_baseline.md` (265,582 projects) for reconciliation.
+4. The team adopted BetterGov's published release instead. Its README states that BetterGov collected the data with a third-party scraper using browser fingerprint impersonation; the team did not collect it and does not use that method. The release covers about 93.5% of the portal's current total and is roughly eight months older than the baseline.
+
+Data credit: BetterGov.ph, compiled from the DPWH Transparency Portal.
+
+## Raw ingestion of the primary source (Milestone 2)
+
+Download `dpwh_transparency_data_all_details.parquet` from the dataset page (Files and versions tab) into `data/source/`, then run:
+
+```bash
+python -m src.cli extract-file
+```
+
+The command checks the file's SHA-256 against the published value recorded in `config/settings.yml`, then copies it byte for byte into `data/raw/source=bettergov_hf/run_id=<UTC timestamp>/` with a `manifest.jsonl` entry and a `run.json` holding the publisher, dataset URL, revision, licence, collection method, and ingestion time. A mismatched checksum stops the run without writing anything. Running the command again with the same file writes nothing and reports the existing run.
+
+## DPWH API extractor (blocked, kept for reference)
 
 Checks made before collection (30 September 2026):
 
@@ -15,7 +36,7 @@ Checks made before collection (30 September 2026):
 | `api.transparency.dpwh.gov.ph/robots.txt` | HTTP 404, no crawler rules published for the API host |
 | `transparency.dpwh.gov.ph/robots.txt` | Written for search engines; `/api/` is listed under private/admin areas of the portal host and `?page=` under duplicate-content rules; crawl delay 0.1 s |
 | Terms of use or data policy | None published on the portal |
-| Bot protection | Cloudflare is present. The first extractor run (30 September 2026) was blocked with HTTP 403 on `/ai/stats`; the extractor stopped immediately. Automatic stats collection was then disabled, and the browser-captured summary in `docs/reconciliation_baseline.md` is used instead |
+| Bot protection | Cloudflare is present. Both live runs (30 September 2026) were blocked with HTTP 403 on the first request and stopped immediately |
 
 How the extractor behaves:
 
@@ -26,23 +47,21 @@ How the extractor behaves:
 - stops immediately, without retrying, on HTTP 401 or 403 or any bot-protection challenge, and never attempts to bypass one;
 - stores every response byte-for-byte in the raw layer with a SHA-256 manifest, and never overwrites a stored file.
 
-## Extraction (Milestone 2)
-
 ```bash
 python -m src.cli extract --max-pages 3
 python -m src.cli extract --resume <run_id>
 ```
 
-Each run writes to `data/raw/run_id=<UTC timestamp>/`:
+Runs are written to `data/raw/source=dpwh_api/run_id=<UTC timestamp>/` with the listing pages, `manifest.jsonl`, and `run.json` (status, stop reason, request counts, robots.txt results).
 
-| File | Content |
+## Raw layer layout
+
+Each source has its own lane, so sources never mix before staging:
+
+| Path | Content |
 | --- | --- |
-| `stats.json` | Portal summary counts (only when `fetch_stats` is enabled; currently disabled) |
-| `projects/page_00001.json`, ... | Listing responses exactly as received |
-| `manifest.jsonl` | One line per stored file: URL, HTTP status, size, SHA-256, UTC fetch time |
-| `run.json` | Run metadata: status, stop reason, reported totals, request counts, robots.txt results |
-
-A full run is about 5,300 requests and takes roughly two and a half hours. An interrupted or capped run is continued with `--resume`, which verifies every stored file against the manifest and fetches only the missing pages.
+| `data/raw/source=bettergov_hf/run_id=.../` | Primary source file, unchanged |
+| `data/raw/source=dpwh_api/run_id=.../` | API extractor runs (blocked) |
 
 ## Repository layout
 
@@ -53,6 +72,7 @@ A full run is about 5,300 requests and takes roughly two and a half hours. An in
 | `src/cli.py` | Unified command line entry point |
 | `src/config.py` | Settings and environment loading |
 | `src/extract`, `transform`, `load`, `validate`, `benchmark` | Pipeline modules (filled in by later milestones) |
+| `docs/` | Source register, reconciliation baseline, data contract |
 | `dags/` | Airflow DAG (Milestone 4) |
 | `sql/init/` | Database initialisation scripts |
 | `data/` | Generated data layers (contents are git-ignored) |
