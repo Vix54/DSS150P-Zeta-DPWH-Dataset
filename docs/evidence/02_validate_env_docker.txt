@@ -1,11 +1,8 @@
- Container dss150p-zeta-postgres-1 Recreate 
- Container dss150p-zeta-postgres-1 Recreated 
- Container dss150p-zeta-postgres-1 Starting 
- Container dss150p-zeta-postgres-1 Started 
+ Container dss150p-zeta-postgres-1 Running 
  Container dss150p-zeta-postgres-1 Waiting 
  Container dss150p-zeta-postgres-1 Healthy 
- Container dss150p-zeta-pipeline-run-3470b2ec45bb Creating 
- Container dss150p-zeta-pipeline-run-3470b2ec45bb Created 
+ Container dss150p-zeta-pipeline-run-5218a5a22de6 Creating 
+ Container dss150p-zeta-pipeline-run-5218a5a22de6 Created 
 Execution environment: container
 Project root: /app
 [PASS] config/settings.yml loaded and validated
