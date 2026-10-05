@@ -1,0 +1,99 @@
+== data/raw/run_id=20260930T154954Z/run.json
+{
+  "api_base_url": "https://api.transparency.dpwh.gov.ph",
+  "last_session_finished_at_utc": "2026-09-30T15:49:55Z",
+  "last_session_pages": 0,
+  "last_session_records": 0,
+  "last_session_requests": 2,
+  "page_limit": 50,
+  "request_delay_seconds": 1.5,
+  "robots": {
+    "https://api.transparency.dpwh.gov.ph": {
+      "rules": "none published, all paths allowed",
+      "status": 404,
+      "url": "https://api.transparency.dpwh.gov.ph/robots.txt"
+    }
+  },
+  "run_id": "20260930T154954Z",
+  "started_at_utc": "2026-09-30T15:49:54Z",
+  "status": "stopped",
+  "stop_reason": "bot-protection challenge on https://api.transparency.dpwh.gov.ph/ai/stats (HTTP 403); stopping without retry",
+  "total_count_reported": null,
+  "total_pages_reported": null,
+  "user_agent_product": "GroupZeta-DSS150P-student-project/0.2"
+}
+== data/raw/run_id=20260930T155243Z/run.json
+{
+  "api_base_url": "https://api.transparency.dpwh.gov.ph",
+  "last_session_finished_at_utc": "2026-09-30T15:52:45Z",
+  "last_session_pages": 0,
+  "last_session_records": 0,
+  "last_session_requests": 2,
+  "page_limit": 50,
+  "request_delay_seconds": 1.5,
+  "robots": {
+    "https://api.transparency.dpwh.gov.ph": {
+      "rules": "none published, all paths allowed",
+      "status": 404,
+      "url": "https://api.transparency.dpwh.gov.ph/robots.txt"
+    }
+  },
+  "run_id": "20260930T155243Z",
+  "started_at_utc": "2026-09-30T15:52:43Z",
+  "stats_fetch_enabled": false,
+  "status": "stopped",
+  "stop_reason": "bot-protection challenge on https://api.transparency.dpwh.gov.ph/projects?page=1&limit=50 (HTTP 403); stopping without retry",
+  "total_count_reported": null,
+  "total_pages_reported": null,
+  "user_agent_product": "GroupZeta-DSS150P-student-project/0.2"
+}
+== data/raw/run_id=20260930T160140Z/run.json
+{
+  "api_base_url": "https://api.transparency.dpwh.gov.ph",
+  "last_session_finished_at_utc": "2026-09-30T16:01:42Z",
+  "last_session_pages": 0,
+  "last_session_records": 0,
+  "last_session_requests": 2,
+  "page_limit": 50,
+  "request_delay_seconds": 1.5,
+  "robots": {
+    "https://api.transparency.dpwh.gov.ph": {
+      "rules": "none published, all paths allowed",
+      "status": 404,
+      "url": "https://api.transparency.dpwh.gov.ph/robots.txt"
+    }
+  },
+  "run_id": "20260930T160140Z",
+  "started_at_utc": "2026-09-30T16:01:40Z",
+  "stats_fetch_enabled": false,
+  "status": "stopped",
+  "stop_reason": "bot-protection challenge on https://api.transparency.dpwh.gov.ph/projects?page=1&limit=50 (HTTP 403); stopping without retry",
+  "total_count_reported": null,
+  "total_pages_reported": null,
+  "user_agent_product": "GroupZeta-DSS150P-student-project/0.2"
+}
+== data/raw/run_id=20260930T163333Z/run.json
+{
+  "api_base_url": "https://api.transparency.dpwh.gov.ph",
+  "last_session_finished_at_utc": "2026-09-30T16:33:35Z",
+  "last_session_pages": 0,
+  "last_session_records": 0,
+  "last_session_requests": 2,
+  "page_limit": 50,
+  "request_delay_seconds": 1.5,
+  "robots": {
+    "https://api.transparency.dpwh.gov.ph": {
+      "rules": "none published, all paths allowed",
+      "status": 404,
+      "url": "https://api.transparency.dpwh.gov.ph/robots.txt"
+    }
+  },
+  "run_id": "20260930T163333Z",
+  "started_at_utc": "2026-09-30T16:33:33Z",
+  "stats_fetch_enabled": false,
+  "status": "stopped",
+  "stop_reason": "bot-protection challenge on https://api.transparency.dpwh.gov.ph/projects?page=1&limit=50 (HTTP 403); stopping without retry",
+  "total_count_reported": null,
+  "total_pages_reported": null,
+  "user_agent_product": "GroupZeta-DSS150P-student-project/0.2"
+}

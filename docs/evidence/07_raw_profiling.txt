@@ -1,0 +1,29 @@
+raw run: run_id=20261005T165803Z
+shape: (248421, 52)
+contractId unique values: 248421 of 248421 rows; nulls: 0
+primary key unique: True
+infraType == infraType_1: 100.0000%
+latitude == latitude_1: 100.0000%
+longitude == longitude_1: 100.0000%
+status
+Completed          205109
+On-Going            34730
+For Procurement      6800
+Terminated            929
+Not Yet Started       853
+amountPaid non-zero: 0
+nysReason                  248421
+livestreamVideoId          248237
+livestreamUrl              248237
+livestreamDetectedAt       248232
+latestImageDate            111705
+dateOfAward                 69887
+completionDate              42395
+latitude_1                  33674
+longitude_1                 33674
+longitude                   33674
+latitude                    33674
+verified                    33674
+startDate                    7669
+expiryDate                   7285
+contractEffectivityDate      7283
