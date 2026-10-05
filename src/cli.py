@@ -167,6 +167,19 @@ def extract(args):
     return 0 if status in ("complete", "capped") else 1
 
 
+def extract_file(args):
+    from src.extract.file_source import FileSourceError, run_file_extract
+    from src.extract.raw_store import RawStoreError
+
+    try:
+        settings = load_settings()
+        run_file_extract(settings, args.source)
+    except (ConfigError, FileSourceError, RawStoreError) as exc:
+        print(f"[FAIL] {exc}")
+        return 1
+    return 0
+
+
 def positive_int(value):
     number = int(value)
     if number < 1:
@@ -207,6 +220,16 @@ def build_parser():
         help="Continue an earlier run, skipping pages already stored and verified.",
     )
     extract_parser.set_defaults(handler=extract)
+    file_parser = subparsers.add_parser(
+        "extract-file",
+        help="Verify a published data file against its recorded SHA-256 and store it unchanged in the raw layer.",
+    )
+    file_parser.add_argument(
+        "--source",
+        default="bettergov_hf",
+        help="Name of the file source in config/settings.yml (default: bettergov_hf).",
+    )
+    file_parser.set_defaults(handler=extract_file)
     return parser
 
 
