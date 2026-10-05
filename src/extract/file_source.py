@@ -1,4 +1,5 @@
 import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -15,6 +16,11 @@ REQUIRED_KEYS = (
     "expected_sha256",
     "collection_method",
 )
+CHECKSUM_ORIGINS = {
+    "published": "the value published by the source",
+    "recorded_at_download": "the value recorded when the file was downloaded",
+}
+SHA256_PATTERN = re.compile(r"[0-9a-f]{64}")
 
 
 class FileSourceError(Exception):
@@ -30,6 +36,11 @@ def source_config(settings, name):
     missing = [key for key in REQUIRED_KEYS if not config.get(key)]
     if missing:
         raise FileSourceError(f"file source '{name}' is missing settings: {', '.join(missing)}")
+    origin = config.get("checksum_origin", "published")
+    if origin not in CHECKSUM_ORIGINS:
+        raise FileSourceError(f"file source '{name}' has unknown checksum_origin '{origin}'; use one of: {', '.join(sorted(CHECKSUM_ORIGINS))}")
+    if not SHA256_PATTERN.fullmatch(str(config["expected_sha256"]).strip().lower()):
+        raise FileSourceError(f"file source '{name}' needs a 64-character SHA-256 in expected_sha256 (run sha256sum on the downloaded file and record it in config/settings.yml)")
     return config
 
 
@@ -67,12 +78,13 @@ def run_file_extract(settings, name, raw_root=None, project_root=PROJECT_ROOT, n
     content = source_path.read_bytes()
     actual = sha256_bytes(content)
     expected = str(config["expected_sha256"]).strip().lower()
+    origin = config.get("checksum_origin", "published")
     if actual != expected:
         raise FileSourceError(
             f"checksum mismatch for {source_path.name}: expected {expected}, found {actual}; "
-            "the local file is not the published file, nothing was written"
+            f"the local file does not match {CHECKSUM_ORIGINS[origin]}, nothing was written"
         )
-    log(f"Checksum matches the published value: {actual}")
+    log(f"Checksum matches {CHECKSUM_ORIGINS[origin]}: {actual}")
 
     root = lane_root(raw_root or settings.paths["raw"], name)
     existing = find_existing_run(root, actual)
@@ -98,7 +110,10 @@ def run_file_extract(settings, name, raw_root=None, project_root=PROJECT_ROOT, n
         "local_source_path": display_path(source_path, project_root),
         "local_source_modified_utc": utc_iso(modified),
         "sha256": actual,
-        "sha256_matches_published": True,
+        "checksum_origin": origin,
+        "sha256_matches_published": origin == "published",
+        "sha256_matches_expected": True,
+        "attribution": config.get("attribution"),
         "bytes": entry["bytes"],
         "ingested_at_utc": entry["fetched_at_utc"],
     }
