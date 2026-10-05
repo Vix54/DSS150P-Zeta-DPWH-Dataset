@@ -111,12 +111,12 @@ CONTRACT_COLUMNS = (
     "engineering_design_url", "is_verified", "is_verified_by_dpwh", "is_verified_by_public",
     "total_images", "has_images", "latest_image_at", "is_live", "livestream_url",
     "livestream_video_id", "livestream_detected_at", "warning_codes", "source_name",
-    "source_revision", "raw_run_id", "_ingested_at_utc", "staged_at_utc",
+    "source_revision", "raw_run_id", "pipeline_run_id", "_ingested_at_utc", "staged_at_utc",
 )
 MEMBER_COLUMNS = (
     "contract_id", "member_position", "member_raw", "display_name", "contractor_name", "former_name",
     "contractor_source_id", "has_revoked_marker", "name_truncated", "source_name", "raw_run_id",
-    "staged_at_utc",
+    "pipeline_run_id", "staged_at_utc",
 )
 
 CONTRACTS_FILE = "contracts.parquet"
@@ -270,6 +270,7 @@ def stage_contracts(df_raw, context):
     out["source_name"] = context["source_name"]
     out["source_revision"] = context.get("source_revision")
     out["raw_run_id"] = context["raw_run_id"]
+    out["pipeline_run_id"] = context.get("pipeline_run_id")
     out["_ingested_at_utc"] = ingested_at
     out["staged_at_utc"] = staged_at
 
@@ -280,13 +281,14 @@ def stage_contracts(df_raw, context):
         contract_id = out.at[position, "contract_id"]
         for number, member in enumerate(members_by_row[position], start=1):
             member_rows.append({"contract_id": contract_id, "member_position": number, **member})
-    members = pd.DataFrame(member_rows, columns=[column for column in MEMBER_COLUMNS if column not in ("source_name", "raw_run_id", "staged_at_utc")])
+    members = pd.DataFrame(member_rows, columns=[column for column in MEMBER_COLUMNS if column not in ("source_name", "raw_run_id", "pipeline_run_id", "staged_at_utc")])
     members["member_position"] = members["member_position"].astype("Int64")
     members["contractor_source_id"] = members["contractor_source_id"].astype("Int64")
     members["has_revoked_marker"] = members["has_revoked_marker"].astype("boolean")
     members["name_truncated"] = members["name_truncated"].astype("boolean")
     members["source_name"] = context["source_name"]
     members["raw_run_id"] = context["raw_run_id"]
+    members["pipeline_run_id"] = context.get("pipeline_run_id")
     members["staged_at_utc"] = staged_at
     members = members.loc[:, list(MEMBER_COLUMNS)].sort_values(["contract_id", "member_position"]).reset_index(drop=True)
 
@@ -294,6 +296,7 @@ def stage_contracts(df_raw, context):
     rejected.insert(0, "error_codes", quarantine.codes().loc[quarantined])
     rejected["source_name"] = context["source_name"]
     rejected["raw_run_id"] = context["raw_run_id"]
+    rejected["pipeline_run_id"] = context.get("pipeline_run_id")
     rejected["quarantined_at_utc"] = staged_at
     rejected = rejected.reset_index(drop=True)
 
@@ -311,6 +314,11 @@ def stage_contracts(df_raw, context):
     if summary["rows_in"] != summary["rows_staged"] + summary["rows_quarantined"]:
         raise StagingError("row accounting failed: staged plus quarantined rows do not equal input rows")
     return contracts, members, rejected, summary
+
+
+def resolve_pipeline_run_id(explicit, environ, staged_at):
+    environ = os.environ if environ is None else environ
+    return explicit or environ.get("PIPELINE_RUN_ID") or f"manual__{pd.Timestamp(staged_at).strftime('%Y%m%dT%H%M%SZ')}"
 
 
 def sha256_file(path):
@@ -347,7 +355,7 @@ def write_atomically(target, write):
     os.replace(temporary, target)
 
 
-def run_staging(settings, source_name="bettergov_hf", run_id=None, rebuild=False, now=utc_now, log=print):
+def run_staging(settings, source_name="bettergov_hf", run_id=None, rebuild=False, now=utc_now, log=print, pipeline_run_id=None, environ=None):
     raw_root = lane_root(settings.paths["raw"], source_name)
     run_id = run_id or latest_run_id(raw_root)
     run = RawRun.open_existing(raw_root, run_id)
@@ -370,6 +378,7 @@ def run_staging(settings, source_name="bettergov_hf", run_id=None, rebuild=False
         "source_name": source_name,
         "source_revision": metadata.get("revision"),
         "raw_run_id": run_id,
+        "pipeline_run_id": resolve_pipeline_run_id(pipeline_run_id, environ, staged_at),
         "ingested_at": metadata.get("ingested_at_utc"),
         "staged_at": staged_at,
     }
@@ -380,6 +389,7 @@ def run_staging(settings, source_name="bettergov_hf", run_id=None, rebuild=False
         "source_name": source_name,
         "source_revision": metadata.get("revision"),
         "raw_run_id": run_id,
+        "pipeline_run_id": context["pipeline_run_id"],
         "raw_file": entry["file"],
         "raw_sha256": entry["sha256"],
         "staged_at_utc": utc_iso(staged_at),
