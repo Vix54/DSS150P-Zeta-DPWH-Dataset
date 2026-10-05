@@ -19,7 +19,7 @@ from src.transform.cleaning import (
     same_values,
     to_dates,
 )
-from src.transform.contractors import parse_contractor, rebuild_winner_names
+from src.transform.contractors import parse_contractor, rebuild_winner_names, unique_members
 
 SOURCE_COLUMNS = (
     "contractId", "description", "category", "status", "budget", "amountPaid", "progress", "region",
@@ -194,14 +194,12 @@ def stage_contracts(df_raw, context):
         out[target], bad = parse_integer(df[source])
         quarantine.add(f"Q_BAD_INTEGER:{source}", bad)
 
-    for source, target in DATE_COLUMNS.items():
-        parsed, bad = parse_datetime(df[source])
-        out[target] = to_dates(parsed)
+    for source, target in {**DATE_COLUMNS, **TIMESTAMP_COLUMNS}.items():
+        parsed, bad, alternate, placeholder = parse_datetime(df[source])
+        out[target] = to_dates(parsed) if source in DATE_COLUMNS else parsed
         quarantine.add(f"Q_BAD_DATE:{source}", bad)
-
-    for source, target in TIMESTAMP_COLUMNS.items():
-        out[target], bad = parse_datetime(df[source])
-        quarantine.add(f"Q_BAD_DATE:{source}", bad)
+        warnings.add(f"W_DATE_FORMAT_ALT:{source}", alternate)
+        warnings.add(f"W_PLACEHOLDER_DATE:{source}", placeholder)
 
     for source, target in BOOL_COLUMNS.items():
         out[target], bad = parse_bool(df[source])
@@ -237,7 +235,9 @@ def stage_contracts(df_raw, context):
 
     out["contractor_raw"] = clean_text(df["contractor"])
     out["winner_names_raw"] = clean_text(df["winnerNames"])
-    members_by_row = [parse_contractor(value) for value in out["contractor_raw"].astype("object")]
+    deduplicated = [unique_members(parse_contractor(value)) for value in out["contractor_raw"].astype("object")]
+    members_by_row = [members for members, _ in deduplicated]
+    warnings.add("W_CONTRACTOR_DUPLICATE_MEMBER", [repeated for _, repeated in deduplicated])
     out["contractor_count"] = pd.Series([len(members) for members in members_by_row], index=df.index, dtype="Int64")
     out["is_joint_venture"] = (out["contractor_count"] > 1).astype("boolean")
 
