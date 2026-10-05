@@ -62,3 +62,13 @@ def test_verified_files_detects_missing_file(tmp_path):
 def test_open_existing_requires_run(tmp_path):
     with pytest.raises(RawStoreError):
         RawRun.open_existing(tmp_path, "20990101T000000Z")
+
+
+def test_create_accepts_explicit_run_id(tmp_path):
+    run = RawRun.create(tmp_path, now=fixed_now, run_id="scheduled__20261006T020000")
+    assert run.directory == tmp_path / "run_id=scheduled__20261006T020000"
+
+
+def test_create_rejects_unsafe_run_id(tmp_path):
+    with pytest.raises(RawStoreError, match="may only contain"):
+        RawRun.create(tmp_path, now=fixed_now, run_id="../escape")

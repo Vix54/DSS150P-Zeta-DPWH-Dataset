@@ -6,7 +6,7 @@ import pytest
 from src.cli import build_parser
 from src.config import Settings, load_settings
 from src.extract import dpwh_projects
-from src.extract.file_source import FileSourceError, lane_root, run_file_extract, source_config
+from src.extract.file_source import FileSourceError, extract_sources, lane_root, run_file_extract, source_config
 from src.extract.raw_store import RawStoreError, sha256_bytes
 
 CONTENT = b"PAR1-fake-parquet-bytes-PAR1"
@@ -136,3 +136,23 @@ def test_api_runs_use_their_own_lane():
 def test_cli_extract_file_defaults_to_bettergov():
     args = build_parser().parse_args(["extract-file"])
     assert args.source == "bettergov_hf"
+
+
+def test_extract_sources_uses_the_given_run_id(tmp_path):
+    settings, _ = make_settings(tmp_path)
+    results = extract_sources("manual_run-1", settings=settings, environ={}, project_root=tmp_path, now=TickingNow(), log=lambda message: None)
+    run, status = results["example"]
+    assert status == "stored"
+    assert run.run_id == "manual_run-1"
+
+
+def test_extract_sources_reads_pipeline_run_id_from_environment(tmp_path):
+    settings, _ = make_settings(tmp_path)
+    results = extract_sources(settings=settings, environ={"PIPELINE_RUN_ID": "scheduled__20261006T020000"}, project_root=tmp_path, now=TickingNow(), log=lambda message: None)
+    assert results["example"][0].run_id == "scheduled__20261006T020000"
+
+
+def test_extract_sources_without_configured_sources_fails(tmp_path):
+    settings = Settings(raw={}, paths={"raw": tmp_path / "raw"})
+    with pytest.raises(FileSourceError, match="no file sources"):
+        extract_sources(settings=settings, environ={}, log=lambda message: None)
