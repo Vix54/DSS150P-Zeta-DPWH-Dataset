@@ -9,7 +9,7 @@ A source may enter the raw layer only if all of the following hold:
 1. **Known publisher.** A named organisation or government agency published it.
 2. **Reuse is permitted.** An explicit licence or published terms allow reuse. Missing terms are recorded and the decision is made by the team, not assumed.
 3. **Obtained through the publisher's own channel.** Downloaded with the publisher's button, export, or documented API, without getting around any access control or bot protection.
-4. **Verifiable.** A checksum is recorded in `config/settings.yml` and checked on every ingestion; a mismatch stops the run.
+4. **Verifiable.** A SHA-256 checksum is recorded in `config/settings.yml` and checked on every ingestion; a mismatch stops the run. When the publisher publishes checksums, the published value is used (`checksum_origin: published`); otherwise the value is recorded at download (`checksum_origin: recorded_at_download`) and the run metadata says so.
 5. **Method disclosed.** How the publisher collected the data is stated here, including methods the team would not use itself.
 
 Sources added after the primary source must be official (government-published) and are used to add fields and flag disagreements. They never overwrite primary values; conflicts are recorded for validation.
@@ -19,6 +19,7 @@ Sources added after the primary source must be official (government-published) a
 | Source | Role | Status |
 | --- | --- | --- |
 | BetterGov.ph DPWH Infrastructure Transparency Dataset (Hugging Face) | Primary | Admitted |
+| PSA Philippine Standard Geographic Code (PSGC) | Official reference for validating geography | Admitted |
 | DPWH transparency API (`api.transparency.dpwh.gov.ph`) | Original source | Not collected: blocked automated access |
 | PhilGEPS Open Data (`open.philgeps.gov.ph`) | Official cross-check | Pending: download availability and terms not yet confirmed |
 
@@ -49,6 +50,24 @@ Sources added after the primary source must be official (government-published) a
 - Document links point to `dcs.infrawatch.ph`; the pipeline stores them as text and never fetches them.
 
 **Credit.** Data published by BetterGov.ph, compiled from the DPWH Transparency Portal.
+
+## PSA Philippine Standard Geographic Code (PSGC)
+
+| Item | Value |
+| --- | --- |
+| Publisher | Philippine Statistics Authority (PSA) |
+| Dataset page | https://psa.gov.ph/classification/psgc |
+| File used | `PSGC-2Q-2026-Publication-Datafile.xlsx` |
+| Revision | PSGC as of 30 June 2026 (2Q 2026 publication, released 13 July 2026) |
+| Licence | CC BY 4.0 ("All data and content on this website are licensed under the Creative Commons Attribution 4.0 International (CC BY 4.0) License, unless otherwise stated") |
+| SHA-256 | Recorded at download in `config/settings.yml`; the PSA does not publish checksums |
+| Format | Excel workbook, a second raw format alongside the Parquet primary source |
+
+**Why it is used.** The PSGC is the government's official classification of regions, provinces, cities, municipalities and barangays. It is a trusted reference for validating the primary source's geography: checking `region` values against the official list (the PSGC counts 18 regions, while the portal's page text says 17 and its summary reports 19), and mapping implementing offices such as "Quezon 2nd DEO" to their provinces. Following the rule for supplementary sources, it is used only to flag disagreements, never to overwrite values in the primary source.
+
+**Collection method.** Downloaded manually by a team member from the PSA website in a standard browser, as the publisher intends.
+
+**Credit.** Philippine Standard Geographic Code (PSGC) as of 30 June 2026, Philippine Statistics Authority, licensed under CC BY 4.0.
 
 ## DPWH transparency API
 
