@@ -151,6 +151,7 @@ Contractor checks (warnings only):
 | `source_name` | string | `bettergov_hf` |
 | `source_revision` | string | Dataset revision recorded at ingestion |
 | `raw_run_id` | string | Raw run the row came from |
+| `pipeline_run_id` | string | Orchestration run that produced the row: `PIPELINE_RUN_ID` from the environment (set by Airflow), otherwise `manual__<UTC timestamp>` |
 | `_ingested_at_utc` | timestamp (UTC) | When the raw file was ingested |
 | `staged_at_utc` | timestamp (UTC) | When this staging run started |
 
@@ -165,7 +166,7 @@ Contractor checks (warnings only):
 
 ## Contractor members table (`contract_contractors.parquet`)
 
-The source writes joint ventures as `NAME A (id) / NAME B (id)`. Each member becomes one row. When the same member (same name and ID) is repeated in one contract, for example `PANAAD CONSTRUCTION (37345)` three times, it is kept once, positions are numbered after de-duplication, and the contract gets `W_CONTRACTOR_DUPLICATE_MEMBER`. The source's own `winnerNames` field lists such members once, which supports this rule. `contractor_count` and `is_joint_venture` use the de-duplicated members.
+The source writes joint ventures as `NAME A (id) / NAME B (id)`. Each member becomes one row. When the same member (same name and ID) is repeated in one contract (34 contracts in the January 2026 release), for example `PANAAD CONSTRUCTION (37345)` three times, it is kept once, positions are numbered after de-duplication, and the contract gets `W_CONTRACTOR_DUPLICATE_MEMBER`. The source's own `winnerNames` field lists such members once, which supports this rule. `contractor_count` and `is_joint_venture` use the de-duplicated members.
 
 | Column | Type | Content |
 | --- | --- | --- |
@@ -180,6 +181,7 @@ The source writes joint ventures as `NAME A (id) / NAME B (id)`. Each member bec
 | `name_truncated` | boolean | True when the name has unbalanced parentheses because the source cut it short; the text is never completed or guessed |
 | `source_name` | string | Lineage, as in the contracts table |
 | `raw_run_id` | string | Lineage, as in the contracts table |
+| `pipeline_run_id` | string | Lineage, as in the contracts table |
 | `staged_at_utc` | timestamp (UTC) | Lineage, as in the contracts table |
 
 ## Quarantine table
@@ -191,6 +193,7 @@ Rejected rows are written with every source column exactly as read from the raw 
 | `error_codes` | Quarantine codes for the row joined with `|` |
 | `source_name` | `bettergov_hf` |
 | `raw_run_id` | Raw run the row came from |
+| `pipeline_run_id` | Orchestration run that rejected the row |
 | `quarantined_at_utc` | When the staging run started |
 
 ## Source field limits
@@ -201,9 +204,10 @@ Findings from staging the January 2026 release (raw run `20261005T154820Z`), rec
 | --- | --- |
 | Contractor member names are cut at 50 characters | 12,209 of the 12,818 members flagged `name_truncated` are exactly 50 characters long, or 49 when the cut fell on a space that was trimmed. The cut usually lands inside a `(FORMERLY ...)` clause |
 | A longer limit of 100 characters is likely | The longest member name in the release is exactly 100 characters |
-| Contracts with a contractor recorded more than once | 74 contracts repeat the same member; `winnerNames` lists each once |
+| Contracts with a contractor recorded more than once | 34 contracts repeat the same member; `winnerNames` lists each once |
 | Two date formats | ISO in almost every row; `MM/DD/YYYY hh:mm:ss AM/PM` in 9 rows |
-| 1 January 1900 used as "no date" | Seen in the 9 rows above; the rule applies to every date column |
+| 1 January 1900 used as "no date" | 446 `advertisementDate` and 186 `bidSubmissionDeadline` values, in both formats (including the 9 rows above) |
+| Winner names that still disagree | 40 contracts where `winnerNames` differs from the rebuilt member names after de-duplication; not yet explained, kept as `W_WINNER_NAMES_MISMATCH` |
 
 These limits come from the publisher's data, not from staging. Truncated names are never completed or guessed.
 
