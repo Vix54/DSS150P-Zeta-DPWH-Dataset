@@ -103,6 +103,21 @@ def fixture_frame():
         row(contractId="ZERO01", latitude=0.0, longitude=0.0, latitude_1=0.0, longitude_1=1.0),
         row(contractId="ORDER01", startDate="2022-06-23", completionDate="2022-02-24"),
         row(contractId="NOID01", contractor="SOME BUILDER", winnerNames="SOME BUILDER"),
+        row(
+            contractId="ALTDATE",
+            status="For Procurement",
+            contractor=None,
+            winnerNames="",
+            advertisementDate="01/01/1900 12:00:00 AM",
+            bidSubmissionDeadline="01/01/1900 12:00:00 AM",
+            dateOfAward="12/09/2025 12:00:00 AM",
+        ),
+        row(contractId="ISOPH01", startDate="1900-01-01"),
+        row(
+            contractId="DUPMEM",
+            contractor="PANAAD CONSTRUCTION (37345) / PANAAD CONSTRUCTION (37345) / PANAAD CONSTRUCTION (37345)",
+            winnerNames="PANAAD CONSTRUCTION",
+        ),
     ]
     return pd.DataFrame(rows, columns=list(staging.SOURCE_COLUMNS))
 
@@ -167,11 +182,11 @@ def test_every_row_is_staged_or_quarantined(tmp_path):
     run = make_raw_run(tmp_path)
     report, status = stage(tmp_path)
     assert status == "staged"
-    assert report["rows_in"] == 14
+    assert report["rows_in"] == 17
     assert report["rows_quarantined"] == 5
-    assert report["rows_staged"] == 9
+    assert report["rows_staged"] == 12
     contracts, _, rejected = outputs(tmp_path, run.run_id)
-    assert len(contracts) == 9
+    assert len(contracts) == 12
     assert len(rejected) == 5
 
 
@@ -201,6 +216,37 @@ def test_odd_but_usable_rows_stay_with_warnings(tmp_path):
     assert warnings_for(contracts, "ZERO01") == {"W_COORDINATES_OUTSIDE_PH", "W_DUPLICATE_COLUMN_MISMATCH:longitude_1"}
     assert warnings_for(contracts, "ORDER01") == {"W_DATE_ORDER:completion_date"}
     assert warnings_for(contracts, "NOID01") == {"W_CONTRACTOR_ID_MISSING"}
+    assert warnings_for(contracts, "ISOPH01") == {"W_PLACEHOLDER_DATE:startDate"}
+
+
+def test_alternate_format_and_placeholder_dates_are_staged(tmp_path):
+    run = make_raw_run(tmp_path)
+    stage(tmp_path)
+    contracts, _, rejected = outputs(tmp_path, run.run_id)
+    assert "ALTDATE" not in set(rejected["contractId"])
+    alternate = contracts.loc[contracts["contract_id"] == "ALTDATE"].iloc[0]
+    assert alternate["date_of_award"] == pd.Timestamp("2025-12-09")
+    assert pd.isna(alternate["advertisement_date"])
+    assert pd.isna(alternate["bid_submission_deadline"])
+    assert warnings_for(contracts, "ALTDATE") == {
+        "W_DATE_FORMAT_ALT:advertisementDate",
+        "W_DATE_FORMAT_ALT:bidSubmissionDeadline",
+        "W_DATE_FORMAT_ALT:dateOfAward",
+        "W_PLACEHOLDER_DATE:advertisementDate",
+        "W_PLACEHOLDER_DATE:bidSubmissionDeadline",
+    }
+    assert pd.isna(contracts.loc[contracts["contract_id"] == "ISOPH01", "start_date"].iloc[0])
+
+
+def test_repeated_members_are_counted_once(tmp_path):
+    run = make_raw_run(tmp_path)
+    stage(tmp_path)
+    contracts, members, _ = outputs(tmp_path, run.run_id)
+    repeated = contracts.loc[contracts["contract_id"] == "DUPMEM"].iloc[0]
+    assert repeated["contractor_count"] == 1
+    assert bool(repeated["is_joint_venture"]) is False
+    assert warnings_for(contracts, "DUPMEM") == {"W_CONTRACTOR_DUPLICATE_MEMBER"}
+    assert members.loc[members["contract_id"] == "DUPMEM", "member_position"].tolist() == [1]
 
 
 def test_types_follow_the_data_contract(tmp_path):
