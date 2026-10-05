@@ -27,16 +27,31 @@ def parse_integer(series):
     return integers, bad | fractional.fillna(False)
 
 
-def parse_datetime(series):
-    text = clean_text(series).str.replace(r"(\.\d{6})\d+", r"\1", regex=True)
+ALTERNATE_DATETIME_FORMAT = "%m/%d/%Y %I:%M:%S %p"
+PLACEHOLDER_DATE = pd.Timestamp("1900-01-01")
+
+
+def parse_iso(text):
     try:
         parsed = pd.to_datetime(text, errors="coerce", format="ISO8601")
     except (ValueError, TypeError):
         parsed = pd.to_datetime(text, errors="coerce", format="ISO8601", utc=True)
     if parsed.dt.tz is not None:
         parsed = parsed.dt.tz_convert("UTC").dt.tz_localize(None)
-    bad = text.notna() & parsed.isna()
-    return parsed, bad
+    return parsed
+
+
+def parse_datetime(series):
+    text = clean_text(series).str.replace(r"(\.\d{6})\d+", r"\1", regex=True)
+    parsed = parse_iso(text)
+    pending = (text.notna() & parsed.isna()).fillna(False)
+    alternate = pd.to_datetime(text.where(pending), errors="coerce", format=ALTERNATE_DATETIME_FORMAT)
+    used_alternate = (pending & alternate.notna()).fillna(False)
+    parsed = parsed.mask(used_alternate, alternate)
+    placeholder = (parsed.dt.normalize() == PLACEHOLDER_DATE).fillna(False)
+    parsed = parsed.mask(placeholder, pd.NaT)
+    bad = (text.notna() & parsed.isna()).fillna(False) & ~placeholder
+    return parsed, bad, used_alternate, placeholder
 
 
 def to_dates(parsed):
