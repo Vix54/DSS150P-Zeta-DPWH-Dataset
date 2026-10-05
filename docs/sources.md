@@ -52,7 +52,7 @@ Sources added after the primary source must be official (government-published) a
 
 ## DPWH transparency API
 
-The original source of the data. The team built a polite extractor (`python -m src.cli extract`) and checked `robots.txt` and the portal's terms before any request. Cloudflare bot protection returned HTTP 403 on the first request to both `/ai/stats` and `/projects` (30 September 2026). The extractor stopped each time as designed, and automated collection from the API was ended. The extractor remains in the repository as tested code. The portal's summary figures were captured once by hand in a browser and are recorded in `docs/reconciliation_baseline.md`.
+The original source of the data. The team built a polite extractor (`python -m src.cli extract`) and checked `robots.txt` and the portal's terms before any request. Cloudflare bot protection returned HTTP 403 on the first data request of each of four runs on 30 September 2026 (one on `/ai/stats`, three on `/projects`; two requests per run including `robots.txt`). The extractor stopped each time as designed, and automated collection from the API was ended. The extractor remains in the repository as tested code. The portal's summary figures were captured once by hand in a browser and are recorded in `docs/reconciliation_baseline.md`.
 
 ## PhilGEPS Open Data
 
