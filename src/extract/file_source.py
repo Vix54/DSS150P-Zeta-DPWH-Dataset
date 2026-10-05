@@ -1,7 +1,8 @@
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 
-from src.config import PROJECT_ROOT
+from src.config import PROJECT_ROOT, load_settings
 from src.extract.raw_store import RawRun, sha256_bytes, utc_iso, utc_now
 
 REQUIRED_KEYS = (
@@ -54,7 +55,7 @@ def display_path(path, project_root):
         return str(path)
 
 
-def run_file_extract(settings, name, raw_root=None, project_root=PROJECT_ROOT, now=utc_now, log=print):
+def run_file_extract(settings, name, raw_root=None, project_root=PROJECT_ROOT, now=utc_now, log=print, run_id=None):
     config = source_config(settings, name)
     project_root = Path(project_root)
     source_path = Path(config["path"])
@@ -79,7 +80,7 @@ def run_file_extract(settings, name, raw_root=None, project_root=PROJECT_ROOT, n
         log(f"Unchanged: this exact file is already stored and verified in run {existing.run_id}; nothing written")
         return existing, "unchanged"
 
-    run = RawRun.create(root, now=now)
+    run = RawRun.create(root, now=now, run_id=run_id)
     entry = run.write(source_path.name, content, config["file_url"], None, now())
     modified = datetime.fromtimestamp(source_path.stat().st_mtime, tz=timezone.utc)
     metadata = {
@@ -104,3 +105,13 @@ def run_file_extract(settings, name, raw_root=None, project_root=PROJECT_ROOT, n
     run.write_metadata(metadata)
     log(f"Stored {source_path.name} ({entry['bytes']} bytes) in {run.directory}")
     return run, "stored"
+
+
+def extract_sources(run_id=None, settings=None, sources=None, environ=None, **kwargs):
+    settings = settings or load_settings()
+    environ = os.environ if environ is None else environ
+    run_id = run_id or environ.get("PIPELINE_RUN_ID") or None
+    names = sources or sorted(settings.raw.get("file_sources") or {})
+    if not names:
+        raise FileSourceError("no file sources are configured in config/settings.yml")
+    return {name: run_file_extract(settings, name, run_id=run_id, **kwargs) for name in names}
