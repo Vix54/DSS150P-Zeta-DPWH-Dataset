@@ -44,6 +44,17 @@ def parse_contractor(raw):
     return [parse_member(part) for part in text.split(MEMBER_SEPARATOR) if part.strip()]
 
 
+def unique_members(members):
+    seen = set()
+    unique = []
+    for member in members:
+        key = (member["display_name"], member["contractor_source_id"])
+        if key not in seen:
+            seen.add(key)
+            unique.append(member)
+    return unique, len(unique) != len(members)
+
+
 def collation_key(name):
     return re.sub(r"[^0-9A-Z]", "", name.upper())
 
