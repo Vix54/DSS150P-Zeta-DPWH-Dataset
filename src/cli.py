@@ -180,6 +180,19 @@ def extract_file(args):
     return 0
 
 
+def stage(args):
+    from src.extract.raw_store import RawStoreError
+    from src.transform.staging import StagingError, run_staging
+
+    try:
+        settings = load_settings()
+        run_staging(settings, source_name=args.source, run_id=args.run_id, rebuild=args.rebuild)
+    except (ConfigError, RawStoreError, StagingError) as exc:
+        print(f"[FAIL] {exc}")
+        return 1
+    return 0
+
+
 def positive_int(value):
     number = int(value)
     if number < 1:
@@ -230,6 +243,26 @@ def build_parser():
         help="Name of the file source in config/settings.yml (default: bettergov_hf).",
     )
     file_parser.set_defaults(handler=extract_file)
+    stage_parser = subparsers.add_parser(
+        "stage",
+        help="Type, normalise and validate a raw run into the staging layer, sending unusable rows to quarantine.",
+    )
+    stage_parser.add_argument(
+        "--source",
+        default="bettergov_hf",
+        help="Raw source lane to stage (default: bettergov_hf).",
+    )
+    stage_parser.add_argument(
+        "--run-id",
+        default=None,
+        help="Raw run to stage (default: the latest run in the source lane).",
+    )
+    stage_parser.add_argument(
+        "--rebuild",
+        action="store_true",
+        help="Stage the run again even if staging output already exists.",
+    )
+    stage_parser.set_defaults(handler=stage)
     return parser
 
 
