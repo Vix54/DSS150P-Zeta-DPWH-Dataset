@@ -1,0 +1,2 @@
+Checksum matches the published value: 953f0bf99d162c062210219cc5f75c22df85049c24c0dae602c1f4dc976a7c97
+Stored dpwh_transparency_data_all_details.parquet (114819143 bytes) in /home/enzo/DSS150P-Zeta-DPWH-Dataset/data/raw/source=bettergov_hf/run_id=20261005T165803Z

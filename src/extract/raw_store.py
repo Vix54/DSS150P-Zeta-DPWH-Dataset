@@ -1,11 +1,13 @@
 import hashlib
 import json
 import os
+import re
 from datetime import datetime, timezone
 from pathlib import Path
 
 MANIFEST_NAME = "manifest.jsonl"
 METADATA_NAME = "run.json"
+RUN_ID_PATTERN = re.compile(r"[A-Za-z0-9._-]+")
 
 
 class RawStoreError(Exception):
@@ -33,8 +35,10 @@ class RawRun:
         self.metadata_path = self.directory / METADATA_NAME
 
     @classmethod
-    def create(cls, root, now=utc_now):
-        run_id = now().strftime("%Y%m%dT%H%M%SZ")
+    def create(cls, root, now=utc_now, run_id=None):
+        run_id = run_id or now().strftime("%Y%m%dT%H%M%SZ")
+        if not RUN_ID_PATTERN.fullmatch(run_id):
+            raise RawStoreError(f"run_id '{run_id}' may only contain letters, digits, '.', '_' and '-'")
         run = cls(root, run_id)
         try:
             run.directory.mkdir(parents=True, exist_ok=False)

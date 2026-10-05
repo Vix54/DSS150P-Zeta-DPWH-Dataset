@@ -11,7 +11,7 @@ The pipeline's primary source is the **BetterGov.ph DPWH Infrastructure Transpar
 How the project arrived there:
 
 1. The DPWH transparency portal (`transparency.dpwh.gov.ph`) loads its data from a public JSON API at `api.transparency.dpwh.gov.ph`. The team built a polite extractor for it, described below.
-2. On its first requests (30 September 2026) the extractor was blocked by Cloudflare bot protection with HTTP 403, on `/ai/stats` and then on `/projects`. It stopped each time, as designed, and automated collection from the API was ended. The team did not attempt to get around the block.
+2. In four runs on 30 September 2026 the extractor was blocked by Cloudflare bot protection with HTTP 403 on its first data request, once on `/ai/stats` and three times on `/projects`. It stopped each time, as designed, and automated collection from the API was ended. The team did not attempt to get around the block.
 3. The portal's summary figures were captured once by hand in a browser and recorded in `docs/reconciliation_baseline.md` (265,582 projects) for reconciliation.
 4. The team adopted BetterGov's published release instead. Its README states that BetterGov collected the data with a third-party scraper using browser fingerprint impersonation; the team did not collect it and does not use that method. The release covers about 93.5% of the portal's current total and is roughly eight months older than the baseline.
 
@@ -36,7 +36,7 @@ Checks made before collection (30 September 2026):
 | `api.transparency.dpwh.gov.ph/robots.txt` | HTTP 404, no crawler rules published for the API host |
 | `transparency.dpwh.gov.ph/robots.txt` | Written for search engines; `/api/` is listed under private/admin areas of the portal host and `?page=` under duplicate-content rules; crawl delay 0.1 s |
 | Terms of use or data policy | None published on the portal |
-| Bot protection | Cloudflare is present. Both live runs (30 September 2026) were blocked with HTTP 403 on the first request and stopped immediately |
+| Bot protection | Cloudflare is present. All four live runs (30 September 2026) were blocked with HTTP 403 on their first data request and stopped immediately (run records in `docs/evidence/08_api_runs_blocked.txt`) |
 
 How the extractor behaves:
 

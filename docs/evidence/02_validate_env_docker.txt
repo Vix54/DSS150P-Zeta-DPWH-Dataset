@@ -1,0 +1,29 @@
+ Container dss150p-zeta-postgres-1 Running 
+ Container dss150p-zeta-postgres-1 Waiting 
+ Container dss150p-zeta-postgres-1 Healthy 
+ Container dss150p-zeta-pipeline-run-5218a5a22de6 Creating 
+ Container dss150p-zeta-pipeline-run-5218a5a22de6 Created 
+Execution environment: container
+Project root: /app
+[PASS] config/settings.yml loaded and validated
+[PASS] Python version 3.11.16 (minimum required 3.11)
+[PASS] Package pandas==3.0.6 matches requirements.txt
+[PASS] Package pyarrow==25.0.1 matches requirements.txt
+[PASS] Package requests==2.34.2 matches requirements.txt
+[PASS] Package sqlalchemy==2.1.1 matches requirements.txt
+[PASS] Package psycopg2-binary==2.9.13 matches requirements.txt
+[PASS] Package pyyaml==6.0.3 matches requirements.txt
+[PASS] Package python-dotenv==1.2.3 matches requirements.txt
+[PASS] Package protego==0.7.0 matches requirements.txt
+[PASS] All required environment variables are set
+[PASS] Directory data/source exists
+[PASS] Directory data/raw exists
+[PASS] Directory data/staging exists
+[PASS] Directory data/curated exists
+[PASS] Directory data/quarantine exists
+[PASS] Directory data/benchmarks exists
+[PASS] Directory data/partitioned exists
+[PASS] Directory sql/init exists
+[SKIP] .env git-ignore check skipped (not a git checkout)
+[PASS] Database connection to postgresql+psycopg2://zeta:***@postgres:5432/dpwh succeeded (PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on x86_64-pc-linux-gnu)
+Result: 20 passed, 0 failed, 1 skipped
