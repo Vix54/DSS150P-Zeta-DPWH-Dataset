@@ -156,3 +156,38 @@ def test_extract_sources_without_configured_sources_fails(tmp_path):
     settings = Settings(raw={}, paths={"raw": tmp_path / "raw"})
     with pytest.raises(FileSourceError, match="no file sources"):
         extract_sources(settings=settings, environ={}, log=lambda message: None)
+
+
+def test_recorded_checksum_origin_is_reported(tmp_path):
+    settings, _ = make_settings(tmp_path)
+    settings.raw["file_sources"]["example"]["checksum_origin"] = "recorded_at_download"
+    settings.raw["file_sources"]["example"]["attribution"] = "Example attribution"
+    run, status = extract(settings, tmp_path)
+    metadata = json.loads(run.metadata_path.read_text(encoding="utf-8"))
+    assert status == "stored"
+    assert metadata["checksum_origin"] == "recorded_at_download"
+    assert metadata["sha256_matches_published"] is False
+    assert metadata["sha256_matches_expected"] is True
+    assert metadata["attribution"] == "Example attribution"
+
+
+def test_unknown_checksum_origin_is_rejected(tmp_path):
+    settings, _ = make_settings(tmp_path)
+    settings.raw["file_sources"]["example"]["checksum_origin"] = "guessed"
+    with pytest.raises(FileSourceError, match="unknown checksum_origin"):
+        source_config(settings, "example")
+
+
+def test_placeholder_checksum_is_rejected(tmp_path):
+    settings, _ = make_settings(tmp_path)
+    settings.raw["file_sources"]["example"]["expected_sha256"] = "change_me"
+    with pytest.raises(FileSourceError, match="64-character SHA-256"):
+        source_config(settings, "example")
+
+
+def test_project_settings_define_the_psgc_reference():
+    config = load_settings().raw["file_sources"]["psa_psgc"]
+    assert config["licence"] == "CC-BY-4.0"
+    assert config["checksum_origin"] == "recorded_at_download"
+    assert config["file_url"].startswith("https://psa.gov.ph/")
+    assert "PSA" in config["publisher"]
