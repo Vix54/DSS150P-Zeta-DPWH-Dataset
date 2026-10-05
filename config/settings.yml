@@ -43,6 +43,20 @@ file_sources:
       Collected by the publisher from the DPWH transparency API using a third-party scraper
       (csiiiv/dpwh-transparency-data-api-scraper) built on curl-cffi with browser fingerprint
       impersonation, as stated in the dataset README. Not collected by Group Zeta.
+  psa_psgc:
+    path: data/source/PSGC-2Q-2026-Publication-Datafile.xlsx
+    publisher: Philippine Statistics Authority (PSA)
+    dataset_url: https://psa.gov.ph/classification/psgc
+    file_url: https://psa.gov.ph/system/files/scd/PSGC-2Q-2026-Publication-Datafile.xlsx
+    revision: PSGC as of 30 June 2026 (2Q 2026 publication, released 13 July 2026)
+    licence: CC-BY-4.0
+    attribution: Philippine Standard Geographic Code (PSGC) as of 30 June 2026, Philippine Statistics Authority, licensed under CC BY 4.0.
+    checksum_origin: recorded_at_download
+    expected_sha256: 31892bc2bdde3ea0682562d9412b5bab4d45a0be5e5a5b4f6c9d7714b94bca5d
+    collection_method: >-
+      Official government publication downloaded manually by a team member from the publisher's
+      website in a standard browser. The publisher does not publish checksums, so the SHA-256 was
+      recorded at download.
 
 scraper:
   respect_robots_txt: true
