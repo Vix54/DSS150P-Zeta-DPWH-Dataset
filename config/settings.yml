@@ -29,6 +29,21 @@ source:
   page_limit: 50
   user_agent_product: GroupZeta-DSS150P-student-project/0.2
 
+file_sources:
+  bettergov_hf:
+    path: data/source/dpwh_transparency_data_all_details.parquet
+    publisher: BetterGov.ph
+    dataset_url: https://huggingface.co/datasets/bettergovph/dpwh-transparency-data
+    file_url: https://huggingface.co/datasets/bettergovph/dpwh-transparency-data/resolve/648ea96af4f7625d606fda0b78803917913a26b7/dpwh_transparency_data_all_details.parquet
+    revision: 648ea96af4f7625d606fda0b78803917913a26b7
+    revision_date_utc: "2026-01-22T00:40:18Z"
+    licence: CC0-1.0
+    expected_sha256: 953f0bf99d162c062210219cc5f75c22df85049c24c0dae602c1f4dc976a7c97
+    collection_method: >-
+      Collected by the publisher from the DPWH transparency API using a third-party scraper
+      (csiiiv/dpwh-transparency-data-api-scraper) built on curl-cffi with browser fingerprint
+      impersonation, as stated in the dataset README. Not collected by Group Zeta.
+
 scraper:
   respect_robots_txt: true
   request_delay_seconds: 1.5
