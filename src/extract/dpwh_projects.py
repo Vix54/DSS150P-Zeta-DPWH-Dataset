@@ -10,6 +10,7 @@ RECORD_CONTAINER_KEYS = ("data", "projects", "items", "results", "records")
 TOTAL_PAGES_KEYS = ("totalPages", "total_pages", "lastPage")
 TOTAL_COUNT_KEYS = ("totalCount", "total_count", "total")
 STATS_FILE = "stats.json"
+API_LANE = "source=dpwh_api"
 
 
 class ExtractError(Exception):
@@ -87,6 +88,10 @@ def build_client(settings, environ, session=None, clock=None, sleep=None):
     )
 
 
+def default_raw_root(settings):
+    return settings.paths["raw"] / API_LANE
+
+
 def require_ok(response, url):
     if response.status_code != 200:
         raise StopScraping(f"HTTP {response.status_code} from {url}; expected 200, stopping for review")
@@ -105,7 +110,7 @@ def run_extract(settings, environ=None, max_pages=None, resume_run_id=None, clie
     source = settings.raw["source"]
     base_url = source["api_base_url"].rstrip("/")
     limit = int(source["page_limit"])
-    raw_root = raw_root or settings.paths["raw"]
+    raw_root = raw_root or default_raw_root(settings)
     client = client or build_client(settings, environ)
 
     if resume_run_id:
