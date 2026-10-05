@@ -168,12 +168,12 @@ def extract(args):
 
 
 def extract_file(args):
-    from src.extract.file_source import FileSourceError, run_file_extract
+    from src.extract.file_source import FileSourceError, extract_sources
     from src.extract.raw_store import RawStoreError
 
     try:
         settings = load_settings()
-        run_file_extract(settings, args.source)
+        extract_sources(settings=settings, sources=[args.source])
     except (ConfigError, FileSourceError, RawStoreError) as exc:
         print(f"[FAIL] {exc}")
         return 1
