@@ -2,7 +2,7 @@
 
 Group Zeta's modular, rerun-safe data pipeline for DPWH infrastructure project data, built to the course's Modular Data Pipeline Specification (Python, PostgreSQL, Parquet, Docker Compose, Apache Airflow).
 
-**Status:** Milestone 1 complete (environment validated on WSL and in Docker). Milestone 2 in progress: raw ingestion of the primary source is complete (v0.2.0); staging is implemented; curated layer and PostgreSQL load are next.
+**Status:** Milestone 1 complete. Milestone 2: raw ingestion of the primary source and the PSGC reference, staging and curated layers implemented; database load, validation, benchmarking and Airflow in progress.
 
 ## Data sources
 
@@ -61,6 +61,7 @@ Each source has its own lane, so sources never mix before staging:
 | Path | Content |
 | --- | --- |
 | `data/raw/source=bettergov_hf/run_id=.../` | Primary source file, unchanged |
+| `data/raw/source=psa_psgc/run_id=.../` | Official PSGC reference workbook, unchanged |
 | `data/raw/source=dpwh_api/run_id=.../` | API extractor runs (blocked) |
 
 ## Staging (Milestone 2)
@@ -80,6 +81,15 @@ Staging reads the latest raw run of the primary source (checksum verified first)
 | `data/quarantine/source=bettergov_hf/run_id=<run>/contracts.parquet` | Rows that cannot be used, exactly as read from raw, with `error_codes` |
 
 Only structurally broken rows (no or duplicated contract ID, unparseable numbers or dates) are quarantined. Unusual but usable rows stay in staging with warning codes so they still count in reconciliation. Every input row is either staged or quarantined. Staging the same raw run again does nothing unless `--rebuild` is given.
+
+## Curated (Milestone 2)
+
+```bash
+python -m src.cli curate
+python -m src.cli curate --rebuild
+```
+
+Curated reads the latest staging run and the PSGC reference (both checksum verified) and writes `data/curated/run_id=<staging run>/dpwh_contracts.parquet`, the contractor members, a region match table and `curated_report.json`. It flags regions against the PSGC, adds award metrics, `is_delayed`, `processed_at_utc` and a deterministic `record_hash`, and quarantines progress values outside 0 to 100 in `data/quarantine/curated/`. Reading the PSGC workbook needs `openpyxl` (pinned in `requirements.txt`). Rules are in `docs/data_contract.md`.
 
 ## Repository layout
 
