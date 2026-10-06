@@ -181,9 +181,9 @@ def curate_frames(contracts, members, regions, context):
     out["award_to_abc_pct"] = (award / abc * 100).where(both & (abc > 0)).round(4)
 
     as_of = pd.Timestamp(context["delay_as_of_date"]).date()
-    completion = pd.to_datetime(out["completion_date"])
+    expiry = pd.to_datetime(out["expiry_date"])
     progress = out["physical_accomplishment"].astype("Float64")
-    delayed = (out["status_name"] == DELAY_STATUS) & completion.notna() & (completion < pd.Timestamp(as_of)) & (progress < 100)
+    delayed = (out["status_name"] == DELAY_STATUS) & expiry.notna() & (expiry < pd.Timestamp(as_of)) & (progress < 100)
     out["is_delayed"] = delayed.fillna(False).astype("boolean")
     out["delay_as_of_date"] = as_of
 
