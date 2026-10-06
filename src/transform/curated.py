@@ -264,6 +264,24 @@ def curated_contracts_path(settings, run_id=None):
     return root / f"run_id={run_id}" / CURATED_CONTRACTS_FILE
 
 
+def read_curated_report(settings, run_id=None):
+    root = Path(settings.paths["curated"])
+    run_id = run_id or latest_run_id(root, "curated")
+    report_path = root / f"run_id={run_id}" / CURATED_REPORT_FILE
+    if not report_path.exists():
+        raise CuratedError(f"curated run {run_id} has no {CURATED_REPORT_FILE}; run 'curate' first")
+    return run_id, json.loads(report_path.read_text(encoding="utf-8"))
+
+
+def read_curated_contracts(settings, run_id=None):
+    run_id, report = read_curated_report(settings, run_id)
+    path = curated_contracts_path(settings, run_id)
+    recorded = report["outputs"][f"curated/{CURATED_CONTRACTS_FILE}"]["sha256"]
+    if sha256_file(path) != recorded:
+        raise CuratedError(f"checksum mismatch for curated file {CURATED_CONTRACTS_FILE}; curated output was modified")
+    return run_id, pd.read_parquet(path), report
+
+
 def run_curated(settings, run_id=None, rebuild=False, now=utc_now, log=print, pipeline_run_id=None, environ=None):
     config = curated_config(settings)
     primary = config["primary_source"]
