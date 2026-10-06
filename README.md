@@ -187,7 +187,7 @@ The UI is at `http://localhost:<AIRFLOW_HOST_PORT>` (default 8080; set another p
 | `src/validate` | Contract and integrity checks (`validate`) |
 | `src/benchmark` | Storage format benchmarks |
 | `src/analytics` | Supplementary descriptive analysis and delay model |
-| `docs/` | Source register, source contract, data contract, data dictionary, lineage, ERD, evidence |
+| `docs/` | Source register, source contract, data contract, data dictionary, lineage, ERD, architecture review (Section 8 answers), evidence |
 | `dags/` | Airflow DAG |
 | `Dockerfile.airflow`, `docker-compose.airflow.yml` | Airflow container |
 | `sql/init/` | Database initialisation scripts |
