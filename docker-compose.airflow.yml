@@ -1,0 +1,37 @@
+services:
+  airflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.airflow
+    image: dss150p-zeta-airflow:dev
+    container_name: dss150p-zeta-airflow
+    user: "${AIRFLOW_UID:-50000}:0"
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: ${POSTGRES_CONTAINER_HOST}
+      POSTGRES_PORT: "5432"
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_CONTAINER_HOST}:5432/${POSTGRES_DB}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_SCHEMA: airflow
+    command: >
+      bash -c "airflow db migrate &&
+      (airflow users create --username \"$${_AIRFLOW_WWW_USER_USERNAME}\" --password \"$${_AIRFLOW_WWW_USER_PASSWORD}\" --firstname Group --lastname Zeta --role Admin --email zeta@example.invalid || true) &&
+      (airflow scheduler &) &&
+      exec airflow webserver --port 8080"
+    ports:
+      - "${AIRFLOW_HOST_PORT:-8080}:8080"
+    volumes:
+      - ./dags:/opt/airflow/dags
+      - ./src:/opt/airflow/src
+      - ./config:/opt/airflow/config:ro
+      - ./sql:/opt/airflow/sql:ro
+      - ./data:/opt/airflow/data
+      - ./requirements.txt:/opt/airflow/requirements.txt:ro
+      - airflow-logs:/opt/airflow/logs
+
+volumes:
+  airflow-logs:
