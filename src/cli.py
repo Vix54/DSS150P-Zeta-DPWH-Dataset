@@ -193,6 +193,19 @@ def stage(args):
     return 0
 
 
+def curate(args):
+    from src.extract.raw_store import RawStoreError
+    from src.transform.curated import CuratedError, run_curated
+
+    try:
+        settings = load_settings()
+        run_curated(settings, run_id=args.run_id, rebuild=args.rebuild)
+    except (ConfigError, RawStoreError, CuratedError) as exc:
+        print(f"[FAIL] {exc}")
+        return 1
+    return 0
+
+
 def positive_int(value):
     number = int(value)
     if number < 1:
@@ -263,6 +276,21 @@ def build_parser():
         help="Stage the run again even if staging output already exists.",
     )
     stage_parser.set_defaults(handler=stage)
+    curate_parser = subparsers.add_parser(
+        "curate",
+        help="Build the curated layer from a staging run: PSGC region check, metrics, delay flag and record_hash.",
+    )
+    curate_parser.add_argument(
+        "--run-id",
+        default=None,
+        help="Staging run to curate (default: the latest staging run of the primary source).",
+    )
+    curate_parser.add_argument(
+        "--rebuild",
+        action="store_true",
+        help="Curate the run again even if curated output already exists.",
+    )
+    curate_parser.set_defaults(handler=curate)
     return parser
 
 
