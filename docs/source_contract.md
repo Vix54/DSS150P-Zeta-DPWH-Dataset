@@ -99,7 +99,7 @@ The row count (248,421) is not checked separately: for this file version it is f
 | R9 | `expiryDate`, `contractEffectivityDate` | Expiry not before effectivity | Warn | `W_DATE_ORDER:expiry_date` | 5 rows |
 | R10 | `status` | Not null, and one of the 5 values in section 7 | Warn | `W_STATUS_MISSING`, `W_STATUS_UNKNOWN` | 0 rows |
 | R11 | `progress` | Between 0 and 100 | Warn in staging, **Quarantine in curated** | `W_PROGRESS_RANGE`, then `Q_PROGRESS_OUT_OF_RANGE` | 3 rows (-100, -0.1, -0.02), quarantined in curated because the database accepts only 0 to 100 |
-| R12 | Amount columns | Not negative | Warn in staging; for `budget` (`project_cost`), **Quarantine at load** | `W_NEGATIVE_AMOUNT:<column>`, then `Q_LOAD_NEGATIVE_PROJECT_COST` | Count to be read from the load report; the database accepts only `project_cost >= 0` |
+| R12 | Amount columns | Not negative | Warn in staging; for `budget` (`project_cost`), **Quarantine at load** | `W_NEGATIVE_AMOUNT:<column>`, then `Q_LOAD_NEGATIVE_PROJECT_COST` | 0 rows in the January 2026 release (evidence 22); the database accepts only `project_cost >= 0` |
 | R13 | `latitude`, `longitude` | Both or neither present | Warn | `W_COORDINATES_PARTIAL` | |
 | R14 | `latitude`, `longitude` | Inside latitude 4.0 to 21.5 and longitude 116.0 to 127.0 | Warn | `W_COORDINATES_OUTSIDE_PH` | 33,674 nulls; all present values inside |
 | R15 | `verified` and other booleans | Recognised true or false value | Warn, value set to null | `W_BAD_BOOLEAN:<column>` | |

@@ -1,4 +1,4 @@
-# Handoff: pipeline implemented end to end; run evidence and Airflow screenshots outstanding
+# Handoff: pipeline implemented and verified end to end; Airflow run evidence outstanding
 
 This note records where the pipeline stands and what the next owners need to continue. Read `docs/sources.md` and `docs/data_contract.md` alongside it.
 
@@ -10,7 +10,7 @@ This note records where the pipeline stands and what the next owners need to con
 | `main`, tag `v0.2.0` | Raw ingestion: API extractor (blocked, kept for reference) and checksum-verified file ingestion of the primary source |
 | `main`, tags `v0.2.1`, `v0.2.2` | Spec-aligned `extract_sources(run_id)`, evidence transcripts, and the official PSGC reference source |
 | `main`, tag `v0.3.0` | Staging and curated layers on the BetterGov source, with quarantine, PSGC region check, metrics and `record_hash` |
-| Branch `feat/m3-load-validate` | Database load, partitioning and partition loads, `validate`, benchmarks, corrected analytics, Airflow DAG and container (next tag `v0.4.0`) |
+| `main`, tag `v0.4.0` | Database load, partitioning and partition loads, `validate`, benchmarks, corrected analytics, Airflow DAG and container, evidence 20–28 |
 | Tests | 105 passing, 1 database test skipped unless a scratch database is configured (`pytest -q`) |
 
 ## Reproduce the raw layer from a fresh clone
@@ -108,7 +108,7 @@ For loading and partitioning, `curated_contracts_path(settings)` in `src/transfo
 
 Open question: 40 contracts still have `W_WINNER_NAMES_MISMATCH` after de-duplication.
 
-## Load, partitioning, validation, benchmarks and Airflow (implemented, evidence pending)
+## Load, partitioning, validation, benchmarks and Airflow (tag `v0.4.0`)
 
 | Area | State |
 | --- | --- |
@@ -119,23 +119,47 @@ Open question: 40 contracts still have `W_WINNER_NAMES_MISMATCH` after de-duplic
 | Analytics (supplementary) | `analyze`: descriptive statistics, charts and a delay model with insights generated from the computed numbers, in `data/analytics/` |
 | Airflow | `dags/dss150p_pipeline.py` calls only the CLI; `Dockerfile.airflow` and `docker-compose.airflow.yml` run Airflow 2.10.5 with the pipeline's packages in a separate virtual environment. Parsed and run end to end with Airflow 2.10.5 outside Docker during development; the run in Docker and its screenshots and logs are still to be captured |
 
+Results on the real data (January 2026 release, evidence 22–28):
+
+| Step | Result |
+| --- | --- |
+| Clean-room run (raw, staging, curated, quarantine and partitions emptied first) | Same counts as `v0.3.0`: 248,421 staged, 248,418 curated, 3 quarantined, 248,121 matched to a PSGC region, 23,769 delayed |
+| Partitioning | 125 partitions; 7,669 contracts without a start date in the null partition |
+| First load | 248,418 inserted, 0 quarantined (no negative `project_cost` in this release) |
+| Second load | `inserted=0, updated=0, unchanged=248418` |
+| `validate` | 30 passed, 0 failed |
+| `load-partition --year 2023 --month 5` | 3,002 rows read, 0 inserted, 0 updated; audit row `success` |
+| Failure and recovery | A modified curated file makes `validate` exit 1; `curate --rebuild` restores it, `validate` passes and the load reports 0/0 |
+
+Benchmark medians over 5 runs (248,418 rows x 43 columns, filter `status_name = 'On-Going'`, 34,728 rows):
+
+| Format | Size (MB) | Write (s) | Full read (s) | Filtered query (s) |
+| --- | --- | --- | --- | --- |
+| CSV | 219.8 | 7.50 | 3.12 | 3.26 |
+| JSON Lines | 415.0 | 9.20 | 5.85 | 5.75 |
+| Parquet (Snappy) | 49.4 | 0.54 | 0.12 | 0.10 |
+| Parquet (Zstandard) | 33.9 | 0.56 | 0.10 | 0.09 |
+| PostgreSQL | 226.1 | 10.98 | 3.65 | 0.54 |
+
+Parquet with Zstandard is the smallest file (about 15% of the CSV) and the fastest to read. PostgreSQL is the largest and slowest to write and read in full, but its filtered query is about 7 times faster than its full read because the database returns only the 34,728 matching rows (14%) to Python; the benchmark table has no index, so this is the cost of the scan plus a smaller transfer.
+
 Still open:
 
 | Area | Next steps |
 | --- | --- |
-| Evidence (section 7.3) | Transcripts for the full run, the 0/0 second load, `validate`, a partition load, the benchmark and a full clean-room rebuild; Airflow Grid/Graph screenshots, task logs and a `controlled_failure` run |
+| Airflow evidence (section 7.3 items 5 and 6) | Run the container once: Grid/Graph screenshots, task logs, and a run with `controlled_failure` showing the retry and recovery |
 | Validation extras | Reconcile curated status counts against `docs/reconciliation_baseline.md`; hand-check about 30 contracts drawn with `random_state=42` on the portal in a normal browser; profile the nested `components`, `bidders` and `coordinates` fields; investigate the 40 winner-name mismatches |
 | Further sources | Only official sources, used to add fields and flag conflicts, never to overwrite the primary source. PhilGEPS Open Data is pending: its terms link returned 404 and download availability is unconfirmed (`docs/sources.md`) |
 
 ## Evidence captured
 
-`docs/evidence/` holds terminal transcripts for the acceptance protocol (section 7.3): environment validation locally and in Docker, the test suite, a clean-room rebuild of the raw layer (first run stores, second run reports unchanged), raw profiling with primary-key uniqueness, the September 2026 API runs that stopped on HTTP 403 (01–08), staging (09–11), PSGC ingestion (12–14), and curated runs including the rebuild after the delay-rule fix (15–19). `airflow_diagnostics.md` documents the team's Airflow runs.
+`docs/evidence/` holds terminal transcripts for the acceptance protocol (section 7.3): environment validation locally and in Docker, the test suite, a clean-room rebuild of the raw layer (first run stores, second run reports unchanged), raw profiling with primary-key uniqueness, the September 2026 API runs that stopped on HTTP 403 (01–08), staging (09–11), PSGC ingestion (12–14), curated runs including the rebuild after the delay-rule fix (15–19), and the downstream runs on the real data (20–28): environment check, tests, a clean-room run of every layer, the 0/0 second load, `validate`, a partition load with its audit row, the benchmark, the analytics and a failure-and-recovery run. `airflow_diagnostics.md` documents the team's Airflow runs.
 
 ## Rules to keep
 
 - Never modify `data/raw`; never commit anything under `data/` or `.env`.
 - No collection that gets around access controls or bot protection; any new source must pass the admission check in `docs/sources.md`.
-- Commit format `Lastname - Type of Action - project part - short description`; small commits on short-lived branches; `main` stays clean; semantic tags at milestones (next: `v0.4.0` for load, partitioning, validation and benchmarks).
+- Commit format `Lastname - Type of Action - project part - short description`; small commits on short-lived branches; `main` stays clean; semantic tags at milestones (next: `v0.4.1` once the Airflow run evidence is added).
 
 ## Environment notes
 
