@@ -249,6 +249,14 @@ def positive_int(value):
         raise argparse.ArgumentTypeError("must be 1 or greater")
     return number
 
+def analyze(args):
+    from src.analytics.full_analysis import run_analytics
+    try:
+        run_analytics()
+    except Exception as exc:
+        print(f"[FAIL] Analytics failed: {exc}")
+        return 1
+    return 0
 
 def build_parser():
     parser = argparse.ArgumentParser(
@@ -328,10 +336,6 @@ def build_parser():
         help="Curate the run again even if curated output already exists.",
     )
     curate_parser.set_defaults(handler=curate)
-    load_parser = subparsers.add_parser(
-        "load",
-        help="Load the curated layer into PostgreSQL."
-    )
     # 1. Load Command
     load_parser = subparsers.add_parser("load", help="Load curated data to PostgreSQL.")
     load_parser.set_defaults(handler=lambda args: __import__('src.load.postgres', fromlist=['load_to_postgres']).load_to_postgres() or 0)
@@ -340,7 +344,7 @@ def build_parser():
     bench_parser = subparsers.add_parser("benchmark", help="Benchmark file formats.")
     bench_parser.set_defaults(handler=lambda args: __import__('src.utils.benchmarks', fromlist=['run_benchmarks']).run_benchmarks() or 0)
 
-    # 3. Partition Command (with optional month)
+    # 3. Partition Command
     part_parser = subparsers.add_parser("load-partition", help="Partition data by year and month.")
     part_parser.add_argument("--year", required=True, type=int, help="Partition Year (YYYY)")
     part_parser.add_argument("--month", type=int, default=None, help="Partition Month (M, optional)")
@@ -349,6 +353,10 @@ def build_parser():
     # 4. Validate Command
     val_parser = subparsers.add_parser("validate", help="Validate file hashes, row counts, and database matches.")
     val_parser.set_defaults(handler=lambda args: __import__('src.utils.validation', fromlist=['run_validation']).run_validation() or 0)
+    
+    # 5. Analyze Command
+    analyze_parser = subparsers.add_parser("analyze", help="Run full EDA, statistics, and ML predictions.")
+    analyze_parser.set_defaults(handler=lambda args: analyze(args))
     
     return parser
 
