@@ -24,5 +24,5 @@ Project root: /home/enzo/DSS150P-Zeta-DPWH-Dataset
 [PASS] Directory data/analytics exists
 [PASS] Directory sql/init exists
 [PASS] .env is ignored by git
-[FAIL] Database connection to postgresql+psycopg2://zeta:***@localhost:5433/dpwh failed: (psycopg2.OperationalError) connection to server at "localhost" (127.0.0.1), port 5433 failed: server closed the connection unexpectedly
-Result: 24 passed, 1 failed, 0 skipped
+[PASS] Database connection to postgresql+psycopg2://zeta:***@localhost:5433/dpwh succeeded (PostgreSQL 16.15 (Debian 16.15-1.pgdg13+2) on x86_64-pc-linux-gnu)
+Result: 25 passed, 0 failed, 0 skipped

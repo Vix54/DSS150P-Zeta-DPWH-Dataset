@@ -48,7 +48,7 @@ Every figure below is computed by `python -m src.cli analyze` from the curated f
 ## Descriptive findings
 
 - 34,728 of 248,418 curated contracts are On-Going; 23,769 of them (68.4%) are delayed.
-- Median project cost is 24,474,917 PHP for delayed contracts and 24,699,999 PHP for on-schedule ones, so delayed contracts have a lower median cost (ratio 0.99).
+- Median project cost is 24,474,917 PHP for delayed contracts and 24,699,999 PHP for on-schedule ones, so the two groups have about the same median cost (ratio 0.99).
 - Highest regional delay rate: Region I at 80.2% of 3,039 On-Going contracts; lowest: Region X at 50.5% of 1,751 (regions with at least 30 On-Going contracts).
 
 ## Delay model
