@@ -32,7 +32,7 @@ def run_partitioning(year, month):
         df['calc_month'] = df['start_date'].dt.month
         
         # Quarantine invalid years (missing or 9999)
-        invalid_mask = df['infra_year'].isna() | (df['infra_year'] == 9999)
+        invalid_mask = df['infra_year'].isna() | (df['infra_year'] == None)
         quarantine_df = df[invalid_mask]
         
         # Isolate targeted partition
