@@ -25,3 +25,17 @@ airflow/airflow.db
 .idea/
 .DS_Store
 Thumbs.db
+
+desktop.ini
+
+# Ignore large local datasets
+dpwh_transparency_newest.csv
+*.csv
+*.parquet
+data/raw/*
+data/staging/*
+data/curated/*
+data/partitioned/*
+
+# Keep directory structures intact for cloning
+!data/**/.gitkeep
