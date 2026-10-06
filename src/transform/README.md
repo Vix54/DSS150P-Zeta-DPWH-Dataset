@@ -15,7 +15,7 @@ Business rules live here and are run through the command line (`python -m src.cl
 - Reads one staging run (checksums verified) and the official PSGC reference.
 - Uses the column names the database load expects: `project_cost`, `physical_accomplishment`, `status_name`, alongside `contract_id`, `start_date`, `infra_year` and `is_delayed`.
 - Flags each contract's region against the PSGC without dropping rows.
-- Adds award metrics (`award_savings_php`, `award_to_abc_pct`) and `is_delayed`, measured against the source snapshot date so reruns give identical results.
+- Adds award metrics (`award_savings_php`, `award_to_abc_pct`) and `is_delayed` (On-Going, past its contract expiry date, under 100%), measured against the source snapshot date so reruns give identical results. `completion_date` is empty for every On-Going contract, so the expiry date is used.
 - Adds `processed_at_utc` and a deterministic `record_hash` for hash-guarded loading.
 - Quarantines progress values outside 0 to 100 (which the database schema rejects) and orphan contractor rows.
 

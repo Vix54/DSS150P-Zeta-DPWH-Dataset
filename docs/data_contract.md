@@ -246,7 +246,7 @@ Curated leaves out fields that are not used for analysis at this layer and stay 
 | `region_matches_psgc` | boolean | True when the DPWH `region` label matches exactly one PSGC region |
 | `award_savings_php` | decimal | `abc_php − award_amount_php` when both are present |
 | `award_to_abc_pct` | decimal | `award_amount_php ÷ abc_php × 100` when both are present and `abc_php > 0`, rounded to 4 places |
-| `is_delayed` | boolean | True when `status_name` is On-Going, `completion_date` is earlier than `delay_as_of_date`, and `physical_accomplishment` is below 100 |
+| `is_delayed` | boolean | True when `status_name` is On-Going, `expiry_date` (the contract's scheduled end) is earlier than `delay_as_of_date`, and `physical_accomplishment` is below 100. `completion_date` cannot be used: it is empty for every On-Going contract in the January 2026 release (0 of 34,728), while `expiry_date` is present for all of them. 23,769 contracts meet the rule |
 | `delay_as_of_date` | date | The primary source's snapshot date (`revision_date_utc` of `bettergov_hf`, 22 January 2026). Using the snapshot date instead of today keeps the flag, and the record hash, identical on every rerun |
 | `processed_at_utc` | timestamp (UTC) | When this curated run started |
 | `record_hash` | string | SHA-256 fingerprint of the business columns (see below) |
