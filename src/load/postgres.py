@@ -3,15 +3,27 @@ import os
 import logging
 from sqlalchemy import create_engine, text
 
+# Import the dynamic path resolver and settings per the team lead's instructions
+from src.transform.curated import curated_contracts_path
+from src.config import settings
+
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
-def load_to_postgres(curated_filepath: str):
-    """Loads curated Parquet data into PostgreSQL using a controlled truncate-and-load strategy."""
+def load_to_postgres():
+    """Loads curated Parquet data into PostgreSQL."""
+    
+    # Read dynamic path from settings
+    curated_filepath = curated_contracts_path(settings)
+    
     logging.info(f"Reading curated data from {curated_filepath}...")
     df = pd.read_parquet(curated_filepath)
 
-    # Filter only columns that belong in the database schema
-    target_cols = ['contract_id', 'project_cost', 'physical_accomplishment', 'start_date', 'infra_year', 'is_delayed']
+    # Added status_name and record_hash to support hash-guarded upserts
+    target_cols = [
+        'contract_id', 'project_cost', 'physical_accomplishment', 
+        'start_date', 'infra_year', 'is_delayed', 
+        'status_name', 'record_hash'
+    ]
     available_cols = [col for col in target_cols if col in df.columns]
     df_load = df[available_cols].copy()
 
