@@ -205,6 +205,44 @@ def curate(args):
         return 1
     return 0
 
+def load(args):
+    from src.load.postgres import load_to_postgres
+    try:
+        load_to_postgres()
+    except Exception as exc:
+        print(f"[FAIL] Database load failed: {exc}")
+        return 1
+    return 0
+
+def benchmark(args):
+    try:
+        # Note: Replace with actual import once the benchmark script is written
+        print("[INFO] Benchmarking CSV, JSON Lines, Parquet, and PostgreSQL...")
+        # from src.utils.benchmarks import run_benchmarks; run_benchmarks()
+    except Exception as exc:
+        print(f"[FAIL] Benchmarking failed: {exc}")
+        return 1
+    return 0
+
+def load_partition(args):
+    try:
+        # Note: Replace with actual import once the partition script is written
+        print(f"[INFO] Loading partition for Year: {args.year}, Month: {args.month}")
+        # from src.load.partition import run_partitioning; run_partitioning(args.year, args.month)
+    except Exception as exc:
+        print(f"[FAIL] Partition load failed: {exc}")
+        return 1
+    return 0
+
+def validate(args):
+    try:
+        # Note: Replace with actual import once validation logic is written
+        print("[INFO] Validating file hashes, row counts, and database matches...")
+        # from src.utils.validation import run_validation; run_validation()
+    except Exception as exc:
+        print(f"[FAIL] Validation failed: {exc}")
+        return 1
+    return 0
 
 def positive_int(value):
     number = int(value)
@@ -291,6 +329,31 @@ def build_parser():
         help="Curate the run again even if curated output already exists.",
     )
     curate_parser.set_defaults(handler=curate)
+    load_parser = subparsers.add_parser(
+        "load",
+        help="Load the curated layer into PostgreSQL."
+    )
+    load_parser.set_defaults(handler=load)
+
+    benchmark_parser = subparsers.add_parser(
+        "benchmark",
+        help="Benchmark file formats and PostgreSQL performance."
+    )
+    benchmark_parser.set_defaults(handler=benchmark)
+
+    part_parser = subparsers.add_parser(
+        "load-partition",
+        help="Partition data by year and month."
+    )
+    part_parser.add_argument("--year", required=True, type=int, help="Partition Year (YYYY)")
+    part_parser.add_argument("--month", required=True, type=int, help="Partition Month (M)")
+    part_parser.set_defaults(handler=load_partition)
+
+    val_parser = subparsers.add_parser(
+        "validate",
+        help="Validate file hashes, row counts, and database matches."
+    )
+    val_parser.set_defaults(handler=validate)
     return parser
 
 
