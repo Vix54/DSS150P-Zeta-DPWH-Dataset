@@ -5,16 +5,18 @@ import pandas as pd
 from pathlib import Path
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import SQLAlchemyError
-from src.config import settings
+from src.config import load_settings
 from src.transform.curated import curated_contracts_path
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - [%(funcName)s] - %(message)s', handlers=[logging.StreamHandler(sys.stdout)])
 logger = logging.getLogger(__name__)
 
-def run_partitioning(year, month):
-    logger.info(f"Initiating partition pipeline for Year: {year}, Month: {month}")
+def run_partitioning(year, month=None):
+    logger.info(f"Initiating partition pipeline for Year: {year}, Month: {month or 'All'}")
     try:
+        settings = load_settings()
         curated_path = curated_contracts_path(settings)
+        
         if not Path(curated_path).exists():
             raise FileNotFoundError(f"Missing curated dataset at {curated_path}")
 
@@ -31,26 +33,29 @@ def run_partitioning(year, month):
         df['start_date'] = pd.to_datetime(df['start_date'], errors='coerce')
         df['calc_month'] = df['start_date'].dt.month
         
-        # Quarantine invalid years (missing or 9999)
-        invalid_mask = df['infra_year'].isna() | (df['infra_year'] == None)
+        # Quarantine invalid years (missing nulls)
+        invalid_mask = df['infra_year'].isna()
         quarantine_df = df[invalid_mask]
         
-        # Isolate targeted partition
-        valid_mask = (df['infra_year'] == year) & (df['calc_month'] == month) & (~invalid_mask)
+        # Isolate targeted partition (with optional month)
+        valid_mask = (df['infra_year'] == year) & (~invalid_mask)
+        if month:
+            valid_mask = valid_mask & (df['calc_month'] == month)
+            
         partition_df = df[valid_mask]
         
         if not quarantine_df.empty:
             quar_dir = Path("data/quarantine")
             quar_dir.mkdir(parents=True, exist_ok=True)
-            quarantine_path = quar_dir / f"quarantine_{year}_{month}.parquet"
+            quarantine_path = quar_dir / f"quarantine_{year}_{month or 'all'}.parquet"
             quarantine_df.to_parquet(quarantine_path)
             logger.info(f"Quarantined {len(quarantine_df)} invalid records to {quarantine_path}")
             
         if partition_df.empty:
-            logger.warning(f"No valid records match the target partition {year}-{month}.")
+            logger.warning(f"No valid records match the target partition {year}-{month or 'all'}.")
             records_inserted = 0
         else:
-            part_dir = Path(f"data/partitioned/infra_year={year}/month={month}")
+            part_dir = Path(f"data/partitioned/infra_year={year}/month={month or 'all'}")
             part_dir.mkdir(parents=True, exist_ok=True)
             part_path = part_dir / "data.parquet"
             partition_df.to_parquet(part_path)

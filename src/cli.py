@@ -235,10 +235,9 @@ def load_partition(args):
     return 0
 
 def validate(args):
+    from src.utils.validation import run_validation
     try:
-        # Note: Replace with actual import once validation logic is written
-        print("[INFO] Validating file hashes, row counts, and database matches...")
-        # from src.utils.validation import run_validation; run_validation()
+        run_validation()
     except Exception as exc:
         print(f"[FAIL] Validation failed: {exc}")
         return 1
@@ -333,27 +332,24 @@ def build_parser():
         "load",
         help="Load the curated layer into PostgreSQL."
     )
-    load_parser.set_defaults(handler=load)
+    # 1. Load Command
+    load_parser = subparsers.add_parser("load", help="Load curated data to PostgreSQL.")
+    load_parser.set_defaults(handler=lambda args: __import__('src.load.postgres', fromlist=['load_to_postgres']).load_to_postgres() or 0)
 
-    benchmark_parser = subparsers.add_parser(
-        "benchmark",
-        help="Benchmark file formats and PostgreSQL performance."
-    )
-    benchmark_parser.set_defaults(handler=benchmark)
+    # 2. Benchmark Command
+    bench_parser = subparsers.add_parser("benchmark", help="Benchmark file formats.")
+    bench_parser.set_defaults(handler=lambda args: __import__('src.utils.benchmarks', fromlist=['run_benchmarks']).run_benchmarks() or 0)
 
-    part_parser = subparsers.add_parser(
-        "load-partition",
-        help="Partition data by year and month."
-    )
+    # 3. Partition Command (with optional month)
+    part_parser = subparsers.add_parser("load-partition", help="Partition data by year and month.")
     part_parser.add_argument("--year", required=True, type=int, help="Partition Year (YYYY)")
-    part_parser.add_argument("--month", required=True, type=int, help="Partition Month (M)")
-    part_parser.set_defaults(handler=load_partition)
-
-    val_parser = subparsers.add_parser(
-        "validate",
-        help="Validate file hashes, row counts, and database matches."
-    )
-    val_parser.set_defaults(handler=validate)
+    part_parser.add_argument("--month", type=int, default=None, help="Partition Month (M, optional)")
+    part_parser.set_defaults(handler=lambda args: __import__('src.transform.partition', fromlist=['run_partitioning']).run_partitioning(args.year, args.month) or 0)
+    
+    # 4. Validate Command
+    val_parser = subparsers.add_parser("validate", help="Validate file hashes, row counts, and database matches.")
+    val_parser.set_defaults(handler=lambda args: __import__('src.utils.validation', fromlist=['run_validation']).run_validation() or 0)
+    
     return parser
 
 

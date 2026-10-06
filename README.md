@@ -155,3 +155,11 @@ The Airflow UI will become accessible at `http://localhost:8080`.
 ### 3. Stopping the Environment
 To safely halt the orchestration and database containers without destroying the mounted data volumes, run:
 `docker compose down`
+
+Append exact CLI execution commands[cite: 6]:
+```markdown
+## Execution Commands
+* **Start Airflow:** `docker compose up -d --build`
+* **Run Database Load:** `python -m src.cli load`
+* **Run Benchmarks:** `python -m src.cli benchmark`
+* **Load Partition:** `python -m src.cli load-partition --year 2023 --month 5`

@@ -6,13 +6,13 @@ This schema represents the final structured table loaded into the PostgreSQL dat
 
 ```mermaid
 erDiagram
-    dpwh_curated_projects {
-        string contract_id PK "Primary unique identifier for the project"
-        float project_cost "Approved budget or award amount in PHP"
-        float physical_accomplishment "Percentage of completion (0-100)"
-        date start_date "Standardized ISO 8601 start date"
+    dpwh_projects {
+        string contract_id PK "Primary identifier"
+        numeric project_cost "Approved budget (>= 0)"
+        numeric physical_accomplishment "Percentage of completion (0-100)"
+        date start_date "Standardized start date"
         int infra_year "Extracted year for partitioning"
-        boolean is_delayed "Calculated flag based on target vs actual completion"
-        string status_name "Current phase (e.g., Ongoing, Completed)"
-        string record_hash "SHA-256 hash for idempotency and upsert validation"
+        boolean is_delayed "True if project execution exceeds target timeframe"
+        string status_name "Current phase"
+        string record_hash "SHA-256 hash for upsert validation"
     }
