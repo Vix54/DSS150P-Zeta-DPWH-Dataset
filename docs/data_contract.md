@@ -211,6 +211,63 @@ Findings from staging the January 2026 release (raw run `20261005T154820Z`), rec
 
 These limits come from the publisher's data, not from staging. Truncated names are never completed or guessed.
 
+## Curated layer (`python -m src.cli curate`)
+
+Curated reads one staging run (its checksums are verified first) and the latest raw run of the official PSGC reference, and writes:
+
+| Item | Location |
+| --- | --- |
+| Curated contracts | `data/curated/run_id=<staging run>/dpwh_contracts.parquet` (one row per contract, sorted by `contract_id`) |
+| Contractor members | `data/curated/run_id=<staging run>/contract_contractors.parquet` (members of curated contracts only) |
+| Region reference | `data/curated/run_id=<staging run>/psgc_regions.parquet` (each DPWH region label, its PSGC match and contract count) |
+| Report | `data/curated/run_id=<staging run>/curated_report.json` (row accounting, match counts, hashed columns, output checksums) |
+| Quarantine | `data/quarantine/curated/run_id=<staging run>/contracts.parquet` and `contract_contractors.parquet` |
+
+Every staged row is either curated or quarantined; the run stops if the counts do not add up. Curating the same staging run again does nothing unless `--rebuild` is given.
+
+### Column names
+
+Curated keeps the staging columns described above, with three renamed to match the database load and schema already in the repository:
+
+| Staging column | Curated column |
+| --- | --- |
+| `status` | `status_name` |
+| `budget_php` | `project_cost` (same caveat: the source `budget` is not consistently the ABC or the award amount) |
+| `progress_pct` | `physical_accomplishment` |
+
+Curated leaves out fields that are not used for analysis at this layer and stay available in staging: the nested JSON columns, document links, verification and image flags, `amount_paid_php` (zero in every row) and the volatile livestream fields.
+
+### Added columns
+
+| Column | Type | Rule |
+| --- | --- | --- |
+| `region_psgc_code` | string | 10-digit PSGC code of the matched region; null when there is no single match |
+| `region_psgc_name` | string | Official PSGC region name |
+| `region_matches_psgc` | boolean | True when the DPWH `region` label matches exactly one PSGC region |
+| `award_savings_php` | decimal | `abc_php − award_amount_php` when both are present |
+| `award_to_abc_pct` | decimal | `award_amount_php ÷ abc_php × 100` when both are present and `abc_php > 0`, rounded to 4 places |
+| `is_delayed` | boolean | True when `status_name` is On-Going, `completion_date` is earlier than `delay_as_of_date`, and `physical_accomplishment` is below 100 |
+| `delay_as_of_date` | date | The primary source's snapshot date (`revision_date_utc` of `bettergov_hf`, 22 January 2026). Using the snapshot date instead of today keeps the flag, and the record hash, identical on every rerun |
+| `processed_at_utc` | timestamp (UTC) | When this curated run started |
+| `record_hash` | string | SHA-256 fingerprint of the business columns (see below) |
+
+### Region matching against the PSGC
+
+The PSGC workbook's `PSGC` sheet is read and rows with `Geographic Level = Reg` form the official region list. A DPWH label matches a PSGC region when they share a key: the Roman-numeral form (`Region IV-A`), the name without its bracketed part (`National Capital Region`), or the bracketed abbreviation (`NCR`). Labels with no shared key are looked up in `curated.region_aliases` in `config/settings.yml`; the only alias is `Region IV-B → MIMAROPA`, the region's official name. Following the rule for supplementary sources, the PSGC only flags: an unmatched or ambiguous label keeps its row and adds `W_REGION_NOT_IN_PSGC` or `W_REGION_AMBIGUOUS_IN_PSGC` to `warning_codes`. "Central Office" (the DPWH head office, 297 contracts in the January 2026 release) is not a region and is expected to stay unmatched.
+
+### Record hash
+
+`record_hash` is the SHA-256 of the curated business columns, joined in a fixed order, with nulls as empty text, dates in ISO form and numbers in a fixed text form. It includes `source_revision` as the source version marker and leaves out execution metadata that changes on every run: `pipeline_run_id`, `processed_at_utc`, `staged_at_utc`, `_ingested_at_utc`, `raw_run_id` and `warning_codes`. The exact column list is written to `curated_report.json` under `record_hash_columns`. The database load can compare it with the stored hash and skip unchanged rows.
+
+### Curated quarantine
+
+| Code | Rows | Meaning |
+| --- | --- | --- |
+| `Q_PROGRESS_OUT_OF_RANGE` | Contracts | `physical_accomplishment` outside 0 to 100. Staging keeps these rows with `W_PROGRESS_RANGE`; curated quarantines them because the database schema enforces 0 to 100. Three rows in the January 2026 release (−100, −0.1, −0.02) |
+| `Q_ORPHAN_CONTRACT_ID` | Contractor members | A member whose `contract_id` is not among the staged contracts |
+
+Quarantined contracts keep every staged column plus `error_codes` and `quarantined_at_utc`.
+
 ## Code reference
 
 | Code | Effect | Meaning |
