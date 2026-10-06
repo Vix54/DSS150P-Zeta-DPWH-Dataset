@@ -1,0 +1,59 @@
+[PASS] Raw bettergov_hf run 20261006T231240Z: 1 file(s) match manifest.jsonl
+[PASS] Raw bettergov_hf run 20261006T231240Z: stored file hash equals expected_sha256 in config/settings.yml
+[PASS] Raw psa_psgc run 20261006T231240Z: 1 file(s) match manifest.jsonl
+[PASS] Raw psa_psgc run 20261006T231240Z: stored file hash equals expected_sha256 in config/settings.yml
+[PASS] Staging run 20261006T231240Z: quarantine/contracts.parquet matches its recorded SHA-256 and row count (0 rows)
+[PASS] Staging run 20261006T231240Z: staging/contract_contractors.parquet matches its recorded SHA-256 and row count (253273 rows)
+[PASS] Staging run 20261006T231240Z: staging/contracts.parquet matches its recorded SHA-256 and row count (248421 rows)
+[PASS] Reconciliation raw -> staging: raw rows 248421 = staging rows in 248421
+[PASS] Reconciliation staging: staged 248421 + quarantined 0 = rows in 248421
+[PASS] Curated run 20261006T231240Z: curated/contract_contractors.parquet matches its recorded SHA-256 and row count (253270 rows)
+[FAIL] Curated run 20261006T231240Z: curated/dpwh_contracts.parquet does not match its recorded SHA-256 (file was modified)
+[PASS] Curated run 20261006T231240Z: curated/psgc_regions.parquet matches its recorded SHA-256 and row count (18 rows)
+[PASS] Curated run 20261006T231240Z: quarantine/curated/contract_contractors.parquet matches its recorded SHA-256 and row count (0 rows)
+[PASS] Curated run 20261006T231240Z: quarantine/curated/contracts.parquet matches its recorded SHA-256 and row count (3 rows)
+[PASS] Lineage: curated run was built from staging run 20261006T231240Z
+[PASS] Reconciliation staging -> curated: staged rows 248421 = curated rows in 248421
+[PASS] Reconciliation curated: curated 248418 + quarantined 3 = rows in 248421
+[SKIP] Calculation, partition and database checks skipped because the curated contracts file failed its checksum
+Result: 16 passed, 1 failed, 0 warnings, 1 skipped
+exit=1
+Curating staging run 20261006T231240Z with PSGC reference run 20261006T231240Z (18 regions)
+Rows in: 248421, curated: 248418, quarantined: 3
+Regions matched to PSGC: 248121 contracts; unmatched labels: ['Central Office']
+Delayed contracts as of 2026-01-22: 23769
+Curated to /home/enzo/DSS150P-Zeta-DPWH-Dataset/data/curated/run_id=20261006T231240Z
+[PASS] Raw bettergov_hf run 20261006T231240Z: 1 file(s) match manifest.jsonl
+[PASS] Raw bettergov_hf run 20261006T231240Z: stored file hash equals expected_sha256 in config/settings.yml
+[PASS] Raw psa_psgc run 20261006T231240Z: 1 file(s) match manifest.jsonl
+[PASS] Raw psa_psgc run 20261006T231240Z: stored file hash equals expected_sha256 in config/settings.yml
+[PASS] Staging run 20261006T231240Z: quarantine/contracts.parquet matches its recorded SHA-256 and row count (0 rows)
+[PASS] Staging run 20261006T231240Z: staging/contract_contractors.parquet matches its recorded SHA-256 and row count (253273 rows)
+[PASS] Staging run 20261006T231240Z: staging/contracts.parquet matches its recorded SHA-256 and row count (248421 rows)
+[PASS] Reconciliation raw -> staging: raw rows 248421 = staging rows in 248421
+[PASS] Reconciliation staging: staged 248421 + quarantined 0 = rows in 248421
+[PASS] Curated run 20261006T231240Z: curated/contract_contractors.parquet matches its recorded SHA-256 and row count (253270 rows)
+[PASS] Curated run 20261006T231240Z: curated/dpwh_contracts.parquet matches its recorded SHA-256 and row count (248418 rows)
+[PASS] Curated run 20261006T231240Z: curated/psgc_regions.parquet matches its recorded SHA-256 and row count (18 rows)
+[PASS] Curated run 20261006T231240Z: quarantine/curated/contract_contractors.parquet matches its recorded SHA-256 and row count (0 rows)
+[PASS] Curated run 20261006T231240Z: quarantine/curated/contracts.parquet matches its recorded SHA-256 and row count (3 rows)
+[PASS] Lineage: curated run was built from staging run 20261006T231240Z
+[PASS] Reconciliation staging -> curated: staged rows 248421 = curated rows in 248421
+[PASS] Reconciliation curated: curated 248418 + quarantined 3 = rows in 248421
+[PASS] Invariant: contract_id is present and unique in all 248418 curated rows
+[PASS] Invariant: physical_accomplishment is within 0 to 100 wherever present
+[PASS] Invariant: record_hash recomputed from business columns matches for every row (0 mismatches)
+[PASS] Invariant: award_savings_php = abc_php - award_amount_php
+[PASS] Invariant: award_to_abc_pct = award_amount_php / abc_php * 100
+[PASS] Invariant: is_delayed follows the delay rule as of 2026-01-22 (23769 delayed)
+[PASS] Invariant: region_matches_psgc agrees with region_psgc_code
+[WARN] Partitions: built from the current curated file (curated run 20261006T231240Z)
+[PASS] Partitions: all 125 partition files match _manifest.json
+[PASS] Reconciliation curated -> partitions: 248418 partition rows = 248418 curated rows
+[PASS] Database (all contracts): every loadable curated contract is in curated.dpwh_projects (0 missing of 248418)
+[PASS] Database (all contracts): record_hash in the database matches the curated file (0 differ)
+[PASS] Database: no rows outside the current curated run (0 extra)
+Result: 29 passed, 0 failed, 1 warnings, 0 skipped
+Loading curated run 20261006T231240Z (248418 contracts, checksum verified)
+Rows read: 248418, loadable: 248418, quarantined: 0
+Load complete into curated.dpwh_projects: inserted=0, updated=0, unchanged=248418

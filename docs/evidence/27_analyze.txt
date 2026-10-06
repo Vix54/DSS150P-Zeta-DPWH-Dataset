@@ -1,0 +1,65 @@
+Shape of the curated contracts: 248418 rows x 43 columns
+Column types: {'string': 16, 'Float64': 8, 'object': 5, 'str': 4, 'boolean': 3, 'Int64': 3, 'datetime64[us, UTC]': 3, 'datetime64[us]': 1}
+Columns with the most missing values: {'warning_codes': 234785, 'date_of_award': 69886, 'completion_date': 42393, 'latitude': 33673, 'longitude': 33673, 'start_date': 7669, 'expiry_date': 7285, 'contract_effectivity_date': 7283, 'program_name': 6800, 'source_of_funds': 6800}
+First rows:
+contract_id status_name   region  project_cost  physical_accomplishment  is_delayed
+   14K00302   Completed Region X   73325581.85                    100.0       False
+   14K00303   Completed Region X   78870421.76                    100.0       False
+   14K00304   Completed Region X  127329379.69                    100.0       False
+On-Going contracts: 34728, delayed: 23769 (68.44%) as of 2026-01-22
+Delay rate by region (at least 30 On-Going contracts):
+                                  contracts  delay_rate_pct
+region                                                     
+Region I                               3039           80.16
+Region VI                              1750           79.43
+Region III                             2930           72.08
+Region IV-A                            3872           70.82
+Region XIII                             938           70.47
+Region V                               3396           69.96
+Region IV-B                            1036           69.50
+Region XI                              1976           68.88
+Region VII                             1769           68.85
+Cordillera Administrative Region       1581           68.75
+National Capital Region                2308           67.59
+Negros Island Region                   1133           67.08
+Region IX                              1855           66.20
+Central Office                          105           64.76
+Region VIII                            2644           62.44
+Region II                              1949           58.29
+Region XII                              696           54.31
+Region X                               1751           50.54
+Delay model: best parameters {'learning_rate': 0.1, 'max_depth': 6, 'max_iter': 200}, cross-validated ROC AUC 0.7, test ROC AUC 0.7011, test balanced accuracy 0.5999
+Permutation importance:
+         feature  importance      std
+     log_abc_php    0.094873 0.005035
+      infra_year    0.079682 0.005399
+          region    0.074443 0.002447
+award_to_abc_pct    0.045671 0.002965
+log_project_cost    0.035846 0.002795
+        category    0.019020 0.000742
+    bidder_count    0.017519 0.001250
+contractor_count    0.000501 0.000545
+is_joint_venture    0.000000 0.000000
+# Delay analysis of curated DPWH contracts
+
+Curated run `20261006T231240Z`; delay rule as of 2026-01-22 (On-Going, past the contract expiry date, progress below 100%).
+Every figure below is computed by `python -m src.cli analyze` from the curated file; nothing is written in by hand.
+
+## Descriptive findings
+
+- 34,728 of 248,418 curated contracts are On-Going; 23,769 of them (68.4%) are delayed.
+- Median project cost is 24,474,917 PHP for delayed contracts and 24,699,999 PHP for on-schedule ones, so delayed contracts have a lower median cost (ratio 0.99).
+- Highest regional delay rate: Region I at 80.2% of 3,039 On-Going contracts; lowest: Region X at 50.5% of 1,751 (regions with at least 30 On-Going contracts).
+
+## Delay model
+
+- Gradient-boosted trees on 34,728 On-Going contracts (68.4% delayed), tuned with 4-setting grid search and 3-fold cross-validation.
+- Held-out ROC AUC 0.701 (moderate; 0.5 is chance) and balanced accuracy 0.600 (0.5 for always predicting one class).
+- Most informative features by permutation importance: log_abc_php (0.095), infra_year (0.080), region (0.074).
+- Excluded because they define the delay flag or carry the contract timeline it is computed from: physical_accomplishment, status_name, expiry_date, contract_effectivity_date, start_date, completion_date, date_of_award, delay_as_of_date.
+
+## Limits
+
+- These are associations in one snapshot of the source, not causes, and the source covers about 93.5% of the portal's contracts.
+
+Charts, insights.md and analytics_metrics.json saved to /home/enzo/DSS150P-Zeta-DPWH-Dataset/data/analytics

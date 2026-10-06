@@ -1,0 +1,9 @@
+Loading partition start_year=2023/start_month=5 from curated run 20261006T231240Z (3002 rows, checksum verified)
+Rows read: 3002, loadable: 3002, quarantined: 0
+Load complete into curated.dpwh_projects: inserted=0, updated=0, unchanged=3002
+Audit row written to audit.partition_loads: status=success, inserted=0, updated=0
+ load_id |     pipeline_run_id      |        partition_path         | rows_read | records_inserted | records_updated | records_quarantined | status  |        started_at_utc         
+---------+--------------------------+-------------------------------+-----------+------------------+-----------------+---------------------+---------+-------------------------------
+       1 | manual__20261006T231443Z | start_year=2023/start_month=5 |      3002 |                0 |               0 |                   0 | success | 2026-10-06 23:14:43.380731+00
+(1 row)
+

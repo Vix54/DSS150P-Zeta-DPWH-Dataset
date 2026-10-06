@@ -1,0 +1,28 @@
+Execution environment: local host
+Project root: /home/enzo/DSS150P-Zeta-DPWH-Dataset
+[PASS] config/settings.yml loaded and validated
+[PASS] Python version 3.14.4 (minimum required 3.11)
+[PASS] Package pandas==3.0.6 matches requirements.txt
+[PASS] Package pyarrow==25.0.1 matches requirements.txt
+[PASS] Package requests==2.34.2 matches requirements.txt
+[PASS] Package sqlalchemy==2.1.1 matches requirements.txt
+[PASS] Package psycopg2-binary==2.9.13 matches requirements.txt
+[PASS] Package pyyaml==6.0.3 matches requirements.txt
+[PASS] Package python-dotenv==1.2.3 matches requirements.txt
+[PASS] Package protego==0.7.0 matches requirements.txt
+[PASS] Package openpyxl==3.1.5 matches requirements.txt
+[PASS] Package matplotlib==3.11.2 matches requirements.txt
+[PASS] Package scikit-learn==1.9.1 matches requirements.txt
+[PASS] All required environment variables are set
+[PASS] Directory data/source exists
+[PASS] Directory data/raw exists
+[PASS] Directory data/staging exists
+[PASS] Directory data/curated exists
+[PASS] Directory data/quarantine exists
+[PASS] Directory data/benchmarks exists
+[PASS] Directory data/partitioned exists
+[PASS] Directory data/analytics exists
+[PASS] Directory sql/init exists
+[PASS] .env is ignored by git
+[FAIL] Database connection to postgresql+psycopg2://zeta:***@localhost:5433/dpwh failed: (psycopg2.OperationalError) connection to server at "localhost" (127.0.0.1), port 5433 failed: server closed the connection unexpectedly
+Result: 24 passed, 1 failed, 0 skipped

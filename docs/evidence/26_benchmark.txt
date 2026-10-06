@@ -1,0 +1,13 @@
+Benchmarking curated run 20261006T231240Z: 248418 rows x 43 columns, filter status_name = 'On-Going'
+Benchmarking CSV (5 runs each for write, full read and filtered query)
+Benchmarking JSON Lines (5 runs each for write, full read and filtered query)
+Benchmarking Parquet (Snappy) (5 runs each for write, full read and filtered query)
+Benchmarking Parquet (Zstandard) (5 runs each for write, full read and filtered query)
+Benchmarking PostgreSQL (5 runs each for write, full read and filtered query)
+             format  size_bytes  size_mb  write_median_s  full_read_median_s  filtered_query_median_s  rows_filtered
+                CSV   219788171  219.788          7.4980              3.1181                   3.2607          34728
+         JSON Lines   415020951  415.021          9.1966              5.8539                   5.7540          34728
+   Parquet (Snappy)    49440179   49.440          0.5434              0.1184                   0.0965          34728
+Parquet (Zstandard)    33928502   33.929          0.5588              0.0990                   0.0920          34728
+         PostgreSQL   226123776  226.124         10.9820              3.6476                   0.5389          34728
+Results saved to /home/enzo/DSS150P-Zeta-DPWH-Dataset/data/benchmarks/benchmark_results.csv and /home/enzo/DSS150P-Zeta-DPWH-Dataset/data/benchmarks/benchmark_runs.json
