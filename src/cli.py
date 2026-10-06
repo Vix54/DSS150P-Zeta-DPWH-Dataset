@@ -173,7 +173,7 @@ def extract_file(args):
 
     try:
         settings = load_settings()
-        extract_sources(settings=settings, sources=[args.source])
+        extract_sources(settings=settings, sources=None if args.source == "all" else [args.source])
     except (ConfigError, FileSourceError, RawStoreError) as exc:
         print(f"[FAIL] {exc}")
         return 1
@@ -205,43 +205,98 @@ def curate(args):
         return 1
     return 0
 
+def describe(exc):
+    message = str(exc).strip()
+    first = message.splitlines()[0] if message else ""
+    return f"{type(exc).__name__}: {first}" if first else type(exc).__name__
+
+
 def load(args):
-    from src.load.postgres import load_to_postgres
+    from src.load.postgres import LoadError, load_to_postgres
+
     try:
-        load_to_postgres()
+        settings = load_settings()
+        load_to_postgres(settings, run_id=args.run_id)
+    except (ConfigError, LoadError) as exc:
+        print(f"[FAIL] {exc}")
+        return 1
     except Exception as exc:
-        print(f"[FAIL] Database load failed: {exc}")
+        print(f"[FAIL] Database load failed: {describe(exc)}")
         return 1
     return 0
 
-def benchmark(args):
+
+def init_db(args):
+    from src.load.postgres import LoadError, apply_schema
+
     try:
-        # Note: Replace with actual import once the benchmark script is written
-        print("[INFO] Benchmarking CSV, JSON Lines, Parquet, and PostgreSQL...")
-        # from src.utils.benchmarks import run_benchmarks; run_benchmarks()
+        apply_schema(load_settings())
+    except (ConfigError, LoadError) as exc:
+        print(f"[FAIL] {exc}")
+        return 1
     except Exception as exc:
-        print(f"[FAIL] Benchmarking failed: {exc}")
+        print(f"[FAIL] Schema could not be applied: {describe(exc)}")
         return 1
     return 0
+
+
+def partition(args):
+    from src.transform.partition import PartitionError, build_partitions
+
+    try:
+        build_partitions(load_settings(), run_id=args.run_id, rebuild=args.rebuild)
+    except (ConfigError, PartitionError) as exc:
+        print(f"[FAIL] {exc}")
+        return 1
+    return 0
+
 
 def load_partition(args):
-    # Updated import path to match your repository structure
-    from src.transform.partition import run_partitioning
+    from src.load.partitions import load_partition as run_load_partition
+
     try:
-        run_partitioning(args.year, args.month)
+        run_load_partition(load_settings(), args.year, args.month)
     except Exception as exc:
-        print(f"[FAIL] Partition load failed: {exc}")
+        print(f"[FAIL] Partition load failed: {describe(exc)}")
         return 1
     return 0
 
+
 def validate(args):
-    from src.utils.validation import run_validation
+    from src.validate.pipeline import run_validation
+
+    if args.month is not None and args.year is None:
+        print("[FAIL] --month needs --year")
+        return 1
     try:
-        run_validation()
+        results = run_validation(load_settings(), skip_db=args.skip_db, year=args.year, month=args.month)
+    except ConfigError as exc:
+        print(f"[FAIL] {exc}")
+        return 1
+    return results.failed()
+
+
+def benchmark(args):
+    from src.benchmark.formats import run_benchmarks
+
+    try:
+        run_benchmarks(load_settings(), run_id=args.run_id, skip_db=args.skip_db)
     except Exception as exc:
-        print(f"[FAIL] Validation failed: {exc}")
+        print(f"[FAIL] Benchmarking failed: {describe(exc)}")
         return 1
     return 0
+
+
+def analyze(args):
+    from src.analytics.full_analysis import run_analytics
+
+    try:
+        run_analytics(load_settings(), run_id=args.run_id)
+    except Exception as exc:
+        print(f"[FAIL] Analytics failed: {describe(exc)}")
+        return 1
+    return 0
+
 
 def positive_int(value):
     number = int(value)
@@ -249,14 +304,13 @@ def positive_int(value):
         raise argparse.ArgumentTypeError("must be 1 or greater")
     return number
 
-def analyze(args):
-    from src.analytics.full_analysis import run_analytics
-    try:
-        run_analytics()
-    except Exception as exc:
-        print(f"[FAIL] Analytics failed: {exc}")
-        return 1
-    return 0
+
+def month_number(value):
+    number = int(value)
+    if not 1 <= number <= 12:
+        raise argparse.ArgumentTypeError("must be between 1 and 12")
+    return number
+
 
 def build_parser():
     parser = argparse.ArgumentParser(
@@ -298,7 +352,7 @@ def build_parser():
     file_parser.add_argument(
         "--source",
         default="bettergov_hf",
-        help="Name of the file source in config/settings.yml (default: bettergov_hf).",
+        help="Name of the file source in config/settings.yml, or 'all' (default: bettergov_hf).",
     )
     file_parser.set_defaults(handler=extract_file)
     stage_parser = subparsers.add_parser(
@@ -336,28 +390,52 @@ def build_parser():
         help="Curate the run again even if curated output already exists.",
     )
     curate_parser.set_defaults(handler=curate)
-    # 1. Load Command
-    load_parser = subparsers.add_parser("load", help="Load curated data to PostgreSQL.")
-    load_parser.set_defaults(handler=lambda args: __import__('src.load.postgres', fromlist=['load_to_postgres']).load_to_postgres() or 0)
-
-    # 2. Benchmark Command
-    bench_parser = subparsers.add_parser("benchmark", help="Benchmark file formats.")
-    bench_parser.set_defaults(handler=lambda args: __import__('src.utils.benchmarks', fromlist=['run_benchmarks']).run_benchmarks() or 0)
-
-    # 3. Partition Command
-    part_parser = subparsers.add_parser("load-partition", help="Partition data by year and month.")
-    part_parser.add_argument("--year", required=True, type=int, help="Partition Year (YYYY)")
-    part_parser.add_argument("--month", type=int, default=None, help="Partition Month (M, optional)")
-    part_parser.set_defaults(handler=lambda args: __import__('src.transform.partition', fromlist=['run_partitioning']).run_partitioning(args.year, args.month) or 0)
-    
-    # 4. Validate Command
-    val_parser = subparsers.add_parser("validate", help="Validate file hashes, row counts, and database matches.")
-    val_parser.set_defaults(handler=lambda args: __import__('src.utils.validation', fromlist=['run_validation']).run_validation() or 0)
-    
-    # 5. Analyze Command
-    analyze_parser = subparsers.add_parser("analyze", help="Run full EDA, statistics, and ML predictions.")
-    analyze_parser.set_defaults(handler=lambda args: analyze(args))
-    
+    load_parser = subparsers.add_parser(
+        "load",
+        help="Load the curated contracts into PostgreSQL with a hash-guarded upsert; rows the table cannot accept go to quarantine.",
+    )
+    load_parser.add_argument("--run-id", default=None, help="Curated run to load (default: the latest).")
+    load_parser.set_defaults(handler=load)
+    init_parser = subparsers.add_parser(
+        "init-db",
+        help="Apply the SQL files in sql/init to the database (idempotent; Docker applies them automatically on a new volume).",
+    )
+    init_parser.set_defaults(handler=init_db)
+    partition_parser = subparsers.add_parser(
+        "partition",
+        help="Write the curated contracts as Hive-style Parquet partitions by start year and month.",
+    )
+    partition_parser.add_argument("--run-id", default=None, help="Curated run to partition (default: the latest).")
+    partition_parser.add_argument("--rebuild", action="store_true", help="Write the partitions again even if they are current.")
+    partition_parser.set_defaults(handler=partition)
+    load_partition_parser = subparsers.add_parser(
+        "load-partition",
+        help="Load one partition slice into PostgreSQL and log the run to audit.partition_loads.",
+    )
+    load_partition_parser.add_argument("--year", required=True, type=int, help="Start year of the slice (YYYY).")
+    load_partition_parser.add_argument("--month", type=month_number, default=None, help="Start month of the slice (1-12); omit to load the whole year.")
+    load_partition_parser.set_defaults(handler=load_partition)
+    check_parser = subparsers.add_parser(
+        "validate",
+        help="Check raw manifests, cross-layer row counts, calculation invariants, partitions and database hashes.",
+    )
+    check_parser.add_argument("--skip-db", action="store_true", help="Skip the database checks.")
+    check_parser.add_argument("--year", type=int, default=None, help="Limit the database check to one partition year.")
+    check_parser.add_argument("--month", type=month_number, default=None, help="Limit the database check to one partition month (needs --year).")
+    check_parser.set_defaults(handler=validate)
+    bench_parser = subparsers.add_parser(
+        "benchmark",
+        help="Benchmark CSV, JSON Lines, Parquet (Snappy, Zstandard) and PostgreSQL on the curated contracts.",
+    )
+    bench_parser.add_argument("--run-id", default=None, help="Curated run to benchmark (default: the latest).")
+    bench_parser.add_argument("--skip-db", action="store_true", help="Skip the PostgreSQL benchmark.")
+    bench_parser.set_defaults(handler=benchmark)
+    analyze_parser = subparsers.add_parser(
+        "analyze",
+        help="Descriptive statistics, charts and a delay model on the curated contracts (outputs in data/analytics).",
+    )
+    analyze_parser.add_argument("--run-id", default=None, help="Curated run to analyse (default: the latest).")
+    analyze_parser.set_defaults(handler=analyze)
     return parser
 
 
