@@ -35,8 +35,8 @@ def contract_frame():
         row(contractId="A0000001", region="Region IV-A"),
         row(contractId="B0000001", region="Region IV-B"),
         row(contractId="C0000001", region="Central Office"),
-        row(contractId="N0000001", region="National Capital Region", status="On-Going", progress=50.0, completionDate="2025-06-30"),
-        row(contractId="N0000002", region="National Capital Region", status="On-Going", progress=50.0, completionDate="2026-06-30"),
+        row(contractId="N0000001", region="National Capital Region", status="On-Going", progress=50.0, completionDate=None, expiryDate="2025-06-30"),
+        row(contractId="N0000002", region="National Capital Region", status="On-Going", progress=50.0, completionDate=None, expiryDate="2026-06-30"),
         row(contractId="P0000001", progress=-100.0),
         row(
             contractId="J0000001",
@@ -243,3 +243,21 @@ def test_cli_curate_defaults():
     args = build_parser().parse_args(["curate"])
     assert args.run_id is None
     assert args.rebuild is False
+
+
+def test_delay_uses_expiry_date_not_completion_date(tmp_path):
+    frame = pd.DataFrame(
+        [
+            row(contractId="E0000001", status="On-Going", progress=40.0, completionDate=None, expiryDate="2025-01-31"),
+            row(contractId="E0000002", status="On-Going", progress=40.0, completionDate="2025-01-31", expiryDate="2026-12-31"),
+            row(contractId="E0000003", status="Completed", progress=100.0, expiryDate="2025-01-31"),
+        ],
+        columns=list(staging.SOURCE_COLUMNS),
+    )
+    settings = build(tmp_path, frame)
+    report, _ = curate(settings)
+    contracts, _, _, _ = outputs(settings, report)
+    assert bool(by_id(contracts, "E0000001")["is_delayed"]) is True
+    assert bool(by_id(contracts, "E0000002")["is_delayed"]) is False
+    assert bool(by_id(contracts, "E0000003")["is_delayed"]) is False
+    assert report["delayed_contracts"] == 1
