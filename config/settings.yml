@@ -58,6 +58,17 @@ file_sources:
       website in a standard browser. The publisher does not publish checksums, so the SHA-256 was
       recorded at download.
 
+curated:
+  primary_source: bettergov_hf
+  reference_source: psa_psgc
+  psgc_sheet: PSGC
+  psgc_code_column: 10-digit PSGC
+  psgc_name_column: Name
+  psgc_level_column: Geographic Level
+  psgc_region_level: Reg
+  region_aliases:
+    Region IV-B: MIMAROPA
+
 scraper:
   respect_robots_txt: true
   request_delay_seconds: 1.5
@@ -75,3 +86,4 @@ required_packages:
   - pyyaml
   - python-dotenv
   - protego
+  - openpyxl
