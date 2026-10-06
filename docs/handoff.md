@@ -1,6 +1,6 @@
-# Handoff: acquisition complete, over to cleaning, validation, EDA and Airflow
+# Handoff: acquisition, staging and curated complete; over to loading, validation, benchmarking and Airflow
 
-This note records where the pipeline stands at the end of the acquisition work and what the next owners need to continue. Read `docs/sources.md` (on `main`) and `docs/data_contract.md` (on branch `feat/m2-staging`) alongside it.
+This note records where the pipeline stands and what the next owners need to continue. Read `docs/sources.md` and `docs/data_contract.md` alongside it.
 
 ## State of the repository
 
@@ -8,8 +8,9 @@ This note records where the pipeline stands at the end of the acquisition work a
 | --- | --- |
 | `main`, tag `v0.1.0` | Milestone 1: environment, configuration, Docker Compose, `validate-env` |
 | `main`, tag `v0.2.0` | Raw ingestion: API extractor (blocked, kept for reference) and checksum-verified file ingestion of the primary source |
-| Branch `feat/m2-staging` | Staging step, data contract and tests, run successfully on the real data. **Not merged.** The cleaning owners decide whether to adopt, change or replace it |
-| Tests | 66 passing (`pytest -q`) |
+| `main`, tags `v0.2.1`, `v0.2.2` | Spec-aligned `extract_sources(run_id)`, evidence transcripts, and the official PSGC reference source |
+| `main`, tag `v0.3.0` | Staging and curated layers on the BetterGov source, with quarantine, PSGC region check, metrics and `record_hash` |
+| Tests | 92 passing (`pytest -q`) |
 
 ## Reproduce the raw layer from a fresh clone
 
@@ -84,31 +85,42 @@ Status in the release compared with the portal baseline (`docs/reconciliation_ba
 
 The pattern fits a snapshot about eight months older than the baseline: projects moved from ongoing to completed, and most of the gap is new projects in procurement.
 
-## Staging head start (`feat/m2-staging`)
+## Staging and curated (on `main`, tag `v0.3.0`)
 
-`python -m src.cli stage` implements `docs/data_contract.md`. On the real data (raw run `20261005T154820Z`) it stages all 248,421 rows in about 21 seconds, quarantines none, and writes 253,273 contractor member rows (11,591 joint ventures after removing repeated members). Decisions already taken:
+Both layers run through the command line and follow `docs/data_contract.md`. On the real data (raw run `20261005T165803Z`):
 
-- Quarantine only structurally unusable rows (missing or duplicate `contractId`, unparseable numbers or dates); everything else is kept with warning codes so it still counts in reconciliation.
-- Parse the second date format and treat 1 January 1900 as null, with warnings that keep both traceable.
-- De-duplicate repeated contractor members (34 contracts) and count joint ventures on unique members.
+| Step | Command | Result |
+| --- | --- | --- |
+| Staging | `python -m src.cli stage` | 248,421 rows staged, 0 quarantined; 253,273 contractor member rows (11,591 joint ventures after removing repeated members) |
+| Curated | `python -m src.cli curate` | 248,418 curated, 3 quarantined (progress outside 0 to 100); 248,121 contracts matched to a PSGC region, with only "Central Office" unmatched; 23,769 contracts delayed as of 22 January 2026 |
 
-Open question for the cleaning owners: 40 contracts still have `W_WINNER_NAMES_MISMATCH` after de-duplication.
+Decisions already taken:
+
+- Staging quarantines only structurally unusable rows; everything else is kept with warning codes so it still counts in reconciliation.
+- The second date format is parsed and 1 January 1900 is treated as null, with traceable warnings.
+- Repeated contractor members (34 contracts) are de-duplicated and joint ventures are counted on unique members.
+- Curated keeps the column names the database load expects (`contract_id`, `project_cost`, `physical_accomplishment`, `start_date`, `infra_year`, `is_delayed`, `status_name`) and adds `record_hash` and `processed_at_utc`.
+- The PSGC only flags regions; it never drops or overwrites rows.
+- `is_delayed` uses the contract expiry date, because `completion_date` is empty for every On-Going contract.
+
+For loading and partitioning, `curated_contracts_path(settings)` in `src/transform/curated.py` returns the latest `dpwh_contracts.parquet`. The old `stage_dpwh_data` and `curate_dpwh_data` functions were replaced, so the DAG should call the CLI commands.
+
+Open question: 40 contracts still have `W_WINNER_NAMES_MISMATCH` after de-duplication.
 
 ## Remaining work
 
 | Area | Next steps |
 | --- | --- |
-| Cleaning (staging) | Review or adopt `feat/m2-staging`; profile the nested `components`, `bidders` and `coordinates` fields before splitting them into tables |
-| Curated layer | `contractId` key; deterministic `record_hash` that excludes the volatile fields `is_live`, `livestream_url`, `livestream_video_id`, `livestream_detected_at` (and `reportCount` if a source carries it); metrics such as award versus approved budget and bidder counts |
-| PostgreSQL | Curated schema with hash-guarded UPSERT and `audit.partition_loads`; the database runs on host port 5433 because Lab 3 uses 5432 |
-| Validation | Check `region` and implementing-office provinces against the PSGC reference; reconcile curated status counts against `docs/reconciliation_baseline.md` and explain the gap; hand-check about 30 contracts drawn with `random_state=42` on the portal in a normal browser; consistency checks (dates, amounts, coordinates) |
+| Staging and curated follow-ups | Optional: profile the nested `components`, `bidders` and `coordinates` fields before splitting them into tables; investigate the 40 winner-name mismatches |
+| PostgreSQL | Load `curated_contracts_path(settings)` with `INSERT … ON CONFLICT (contract_id) DO UPDATE` only when `record_hash` differs, so a second load reports inserted=0, updated=0; create `audit.partition_loads`; take credentials from `.env` only; the database runs on host port 5433 because Lab 3 uses 5432 |
+| Validation | Add `python -m src.cli validate` (file hashes, cross-layer row counts, calculations, database hash matches); check implementing-office provinces against the PSGC reference; reconcile curated status counts against `docs/reconciliation_baseline.md` and explain the gap; hand-check about 30 contracts drawn with `random_state=42` on the portal in a normal browser; consistency checks (dates, amounts, coordinates) |
 | Milestone 3 | Benchmark CSV, Parquet (Snappy, Zstd) and PostgreSQL on size and read/write time into `data/benchmarks/`; Hive-partitioned copy in `data/partitioned/` (candidate keys `infra_year` and `region`) |
-| Milestone 4 | DAG at `dags/dss150p_pipeline.py` that only calls the CLI commands (`extract-file`, `stage`, later steps); Airflow needs a host port other than 8080 because Lab 3 uses it. Set `PIPELINE_RUN_ID` for every task to one path-safe value per DAG run, for example `airflow__{{ ts_nodash }}` (letters, digits, `.`, `_` and `-` only): `extract-file` uses it as the raw `run_id` through `extract_sources(run_id)`, and `stage` writes it to the `pipeline_run_id` column |
+| Milestone 4 | DAG at `dags/dss150p_pipeline.py` (the name the spec uses; `dags/dpwh_pipeline_dag.py` is currently empty) that only calls the CLI commands (`extract-file`, `stage`, `curate`, later steps); Airflow needs a host port other than 8080 because Lab 3 uses it. Set `PIPELINE_RUN_ID` for every task to one path-safe value per DAG run, for example `airflow__{{ ts_nodash }}` (letters, digits, `.`, `_` and `-` only): `extract-file` uses it as the raw `run_id` through `extract_sources(run_id)`, and `stage` and `curate` write it to the `pipeline_run_id` column |
 | Further sources | Only official sources, used to add fields and flag conflicts, never to overwrite the primary source. PhilGEPS Open Data is pending: its terms link returned 404 and download availability is unconfirmed (`docs/sources.md`) |
 
 ## Evidence captured
 
-`docs/evidence/` holds terminal transcripts for the acceptance protocol (section 7.3): environment validation locally and in Docker, the test suite, a clean-room rebuild of the raw layer (first run stores, second run reports unchanged), raw profiling with primary-key uniqueness, and the September 2026 API runs that stopped on HTTP 403. Staging transcripts are on `feat/m2-staging` in the same folder.
+`docs/evidence/` holds terminal transcripts for the acceptance protocol (section 7.3): environment validation locally and in Docker, the test suite, a clean-room rebuild of the raw layer (first run stores, second run reports unchanged), raw profiling with primary-key uniqueness, the September 2026 API runs that stopped on HTTP 403 (01–08), staging (09–11), PSGC ingestion (12–14), and curated runs including the rebuild after the delay-rule fix (15–19). `airflow_diagnostics.md` documents the team's Airflow runs.
 
 ## Rules to keep
 
