@@ -1,19 +1,25 @@
--- sql/init/01_schema.sql
+-- 1. Create Schemas
+CREATE SCHEMA IF NOT EXISTS curated;
+CREATE SCHEMA IF NOT EXISTS audit;
 
--- Create a lookup dimension table (satisfies the "relationships" rubric requirement)
-CREATE TABLE IF NOT EXISTS dim_status (
-    status_id SERIAL PRIMARY KEY,
-    status_name VARCHAR(50) UNIQUE NOT NULL
-);
-
--- Create the main curated fact table
-CREATE TABLE IF NOT EXISTS dpwh_curated_projects (
-    contract_id VARCHAR(100) PRIMARY KEY,
-    project_cost NUMERIC(15, 2),
-    physical_accomplishment NUMERIC(5, 2) CHECK (physical_accomplishment >= 0 AND physical_accomplishment <= 100),
+-- 2. Create the Curated Projects Table with strict constraints
+CREATE TABLE IF NOT EXISTS curated.dpwh_projects (
+    contract_id VARCHAR PRIMARY KEY,
+    project_cost NUMERIC NOT NULL CHECK (project_cost >= 0),
+    physical_accomplishment NUMERIC CHECK (physical_accomplishment >= -100 AND physical_accomplishment <= 100),
     start_date DATE,
     infra_year INTEGER,
     is_delayed BOOLEAN,
-    status_name VARCHAR(50),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    status_name VARCHAR NOT NULL,
+    record_hash VARCHAR NOT NULL
+);
+
+-- 3. Create the Partition Loads Audit Table
+CREATE TABLE IF NOT EXISTS audit.partition_loads (
+    id SERIAL PRIMARY KEY,
+    load_year INTEGER,
+    load_month INTEGER,
+    records_inserted INTEGER,
+    records_updated INTEGER,
+    run_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
