@@ -11,6 +11,7 @@ paths:
   quarantine: data/quarantine
   benchmarks: data/benchmarks
   partitioned: data/partitioned
+  analytics: data/analytics
   sql_init: sql/init
 
 logging:
@@ -20,6 +21,30 @@ database:
   schema_curated: curated
   schema_audit: audit
   connect_timeout_seconds: 5
+
+load:
+  table: curated.dpwh_projects
+  key: contract_id
+  columns: [contract_id, project_cost, physical_accomplishment, start_date, infra_year, is_delayed, status_name, record_hash]
+  audit_table: audit.partition_loads
+
+partitioning:
+  dataset: dpwh_contracts
+  date_column: start_date
+  year_column: start_year
+  month_column: start_month
+
+benchmark:
+  runs: 5
+  filter_column: status_name
+  filter_value: On-Going
+
+analytics:
+  target: is_delayed
+  population_status: On-Going
+  test_size: 0.2
+  cv_folds: 3
+  top_categories: 10
 
 source:
   api_base_url: https://api.transparency.dpwh.gov.ph
@@ -87,3 +112,5 @@ required_packages:
   - python-dotenv
   - protego
   - openpyxl
+  - matplotlib
+  - scikit-learn

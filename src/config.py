@@ -18,6 +18,13 @@ REQUIRED_ENV_VARS = (
     "POSTGRES_PASSWORD",
     "SCRAPER_CONTACT",
 )
+DB_ENV_VARS = (
+    "POSTGRES_HOST",
+    "POSTGRES_PORT",
+    "POSTGRES_DB",
+    "POSTGRES_USER",
+    "POSTGRES_PASSWORD",
+)
 PLACEHOLDER_VALUES = {"", "change_me"}
 REQUIRED_SECTIONS = ("project", "paths", "database", "required_packages")
 
@@ -58,10 +65,10 @@ def load_settings(settings_path=SETTINGS_PATH, env_path=ENV_PATH):
     return Settings(raw=raw, paths=paths)
 
 
-def missing_env_vars(environ=None):
+def missing_env_vars(environ=None, names=REQUIRED_ENV_VARS):
     environ = os.environ if environ is None else environ
     missing = []
-    for name in REQUIRED_ENV_VARS:
+    for name in names:
         value = environ.get(name)
         if value is None or value.strip().lower() in PLACEHOLDER_VALUES:
             missing.append(name)
@@ -70,7 +77,7 @@ def missing_env_vars(environ=None):
 
 def build_db_url(environ=None):
     environ = os.environ if environ is None else environ
-    missing = missing_env_vars(environ)
+    missing = missing_env_vars(environ, DB_ENV_VARS)
     if missing:
         raise ConfigError(f"missing or placeholder environment variables: {', '.join(missing)}")
     return URL.create(
