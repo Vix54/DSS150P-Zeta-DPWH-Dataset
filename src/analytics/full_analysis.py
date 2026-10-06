@@ -177,9 +177,13 @@ def build_insights(summary, rates, metrics, ranked):
         f"- {summary['ongoing']:,} of {summary['rows']:,} curated contracts are On-Going; {summary['delayed']:,} of them ({summary['delay_rate_pct']:.1f}%) are delayed.",
     ]
     if summary["median_cost_delayed"] is not None and summary["median_cost_on_schedule"] is not None:
-        relation = "higher" if summary["median_cost_delayed"] > summary["median_cost_on_schedule"] else "lower"
+        ratio = summary["median_cost_ratio"]
+        if abs(ratio - 1) < 0.05:
+            comparison = f"so the two groups have about the same median cost (ratio {ratio:.2f})"
+        else:
+            comparison = f"so delayed contracts have a {'higher' if ratio > 1 else 'lower'} median cost (ratio {ratio:.2f})"
         lines.append(
-            f"- Median project cost is {summary['median_cost_delayed']:,.0f} PHP for delayed contracts and {summary['median_cost_on_schedule']:,.0f} PHP for on-schedule ones, so delayed contracts have a {relation} median cost (ratio {summary['median_cost_ratio']:.2f})."
+            f"- Median project cost is {summary['median_cost_delayed']:,.0f} PHP for delayed contracts and {summary['median_cost_on_schedule']:,.0f} PHP for on-schedule ones, {comparison}."
         )
     if len(rates):
         top = rates.sort_values("delay_rate_pct", ascending=False)
