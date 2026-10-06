@@ -6,6 +6,5 @@ psycopg2-binary==2.9.13
 PyYAML==6.0.3
 python-dotenv==1.2.3
 protego==0.7.0
+openpyxl==3.1.5
 pytest==9.1.1
-
-
