@@ -33,7 +33,7 @@ with DAG(
     
     env_vars = {'PIPELINE_RUN_ID': '{{ run_id }}'}
 
-    extract = BashOperator(task_id='extract', bash_command='python -m src.cli extract', env=env_vars)
+    extract = BashOperator(task_id='extract', bash_command='python -m src.cli extract-file', env=env_vars)
     stage = BashOperator(task_id='stage', bash_command='python -m src.cli stage', env=env_vars)
     curate = BashOperator(task_id='curate', bash_command='python -m src.cli curate', env=env_vars)
     load = BashOperator(task_id='load', bash_command='python -m src.cli load', env=env_vars)
