@@ -165,7 +165,10 @@ def validate_partitions(settings, results, curated_report):
         results.note(SKIP, "Partitions: no partitioned dataset yet (run 'partition')")
         return
     curated_sha = curated_report["outputs"][f"curated/{curated.CURATED_CONTRACTS_FILE}"]["sha256"]
-    results.add(manifest["curated_sha256"] == curated_sha, f"Partitions: built from the current curated file (curated run {manifest['curated_run_id']})", otherwise=WARN)
+    if manifest["curated_sha256"] == curated_sha:
+        results.add(True, f"Partitions: built from the current curated file (curated run {manifest['curated_run_id']})")
+    else:
+        results.note(WARN, "Partitions: built from an earlier version of the curated file; run 'partition' to refresh them")
     root = partition.dataset_root(settings)
     bad = [entry["path"] for entry in manifest["partitions"] if not (root / entry["path"]).exists() or staging.sha256_file(root / entry["path"]) != entry["sha256"]]
     results.add(not bad, f"Partitions: all {len(manifest['partitions'])} partition files match _manifest.json")
