@@ -15,12 +15,12 @@ def load_to_postgres(curated_filepath: str):
     available_cols = [col for col in target_cols if col in df.columns]
     df_load = df[available_cols].copy()
 
-    # Database connection using environment variables
-    db_user = os.getenv("POSTGRES_USER", "postgres")
-    db_pass = os.getenv("POSTGRES_PASSWORD", "postgres")
-    db_host = os.getenv("POSTGRES_HOST", "localhost")
-    db_port = os.getenv("POSTGRES_PORT", "5432")
-    db_name = os.getenv("POSTGRES_DB", "postgres")
+    # Database connection forcing direct container environment variable reads
+    db_user = os.environ.get("POSTGRES_USER", "postgres")
+    db_pass = os.environ.get("POSTGRES_PASSWORD", "postgres")
+    db_host = os.environ.get("POSTGRES_HOST", "postgres")
+    db_port = os.environ.get("POSTGRES_PORT", "5432")
+    db_name = os.environ.get("POSTGRES_DB", "postgres")
 
     engine = create_engine(f"postgresql+psycopg2://{db_user}:{db_pass}@{db_host}:{db_port}/{db_name}")
 
