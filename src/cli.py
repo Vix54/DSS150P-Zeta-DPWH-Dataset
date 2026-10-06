@@ -225,10 +225,10 @@ def benchmark(args):
     return 0
 
 def load_partition(args):
+    # Updated import path to match your repository structure
+    from src.transform.partition import run_partitioning
     try:
-        # Note: Replace with actual import once the partition script is written
-        print(f"[INFO] Loading partition for Year: {args.year}, Month: {args.month}")
-        # from src.load.partition import run_partitioning; run_partitioning(args.year, args.month)
+        run_partitioning(args.year, args.month)
     except Exception as exc:
         print(f"[FAIL] Partition load failed: {exc}")
         return 1
