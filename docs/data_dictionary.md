@@ -5,7 +5,7 @@ Companion document: `docs/source_contract.md` (rules and actions live there, not
 
 Status: draft, updated 6 October 2026 using Enzo's facts sheet
 Measured on: `dpwh_transparency_data_all_details.parquet`, 248,421 rows, 52 columns
-Evidence: `docs/evidence/07_raw_profiling.txt` (`main`), `docs/evidence/10_stage_first_run.txt` (`feat/m2-staging`)
+Evidence: `docs/evidence/07_raw_profiling.txt` and `docs/evidence/10_stage_first_run.txt` (`main`)
 
 This dictionary describes what each column is and what was observed in it. It does not say what the pipeline does when a value is bad. See the source contract for that.
 
@@ -24,7 +24,7 @@ The earlier drafts were built from the Hugging Face dataset card, which describe
 | `reportCount` | Not present |
 | `hasSatelliteImage` | Not present. Closest are `hasImages` (bool) and `totalImages` (int) |
 
-29 of the 52 columns were not in the earlier drafts. They are marked **new**.
+33 of the 52 columns were not in the earlier drafts. They are marked **new**.
 
 ---
 

@@ -1,6 +1,6 @@
-# Data contract: staging layer
+# Data contract: staging, curated, partitioned and database layers
 
-This contract defines what the staging step (`python -m src.cli stage`) accepts from the raw layer, what it produces, and which rules send a row to quarantine or attach a warning. It applies to the primary source `bettergov_hf` (see `docs/sources.md`).
+This contract defines what the staging step (`python -m src.cli stage`) accepts from the raw layer, what it produces, and which rules send a row to quarantine or attach a warning. It applies to the primary source `bettergov_hf` (see `docs/sources.md`). Later sections cover the curated layer, the partitioned dataset and the database load. Source-level expectations are in `docs/source_contract.md`; column meanings are in `docs/data_dictionary.md`.
 
 ## Principles
 
@@ -268,6 +268,47 @@ The PSGC workbook's `PSGC` sheet is read and rows with `Geographic Level = Reg` 
 
 Quarantined contracts keep every staged column plus `error_codes` and `quarantined_at_utc`.
 
+## Partitioned dataset (`python -m src.cli partition`)
+
+| Item | Rule |
+| --- | --- |
+| Location | `data/partitioned/dpwh_contracts/start_year=YYYY/start_month=M/part-0.parquet` |
+| Keys | `start_year` and `start_month` from `start_date`; they are folder names and are not stored inside the files |
+| Missing start date | Folder `start_year=__HIVE_DEFAULT_PARTITION__/start_month=__HIVE_DEFAULT_PARTITION__`; the row is kept, not dropped |
+| Content | Every curated contract column, rows sorted by `contract_id` |
+| Manifest | `_manifest.json`: curated run ID and SHA-256, row count, and path, keys, rows and SHA-256 of every file. Partition rows must add up to the curated rows or the run stops |
+| Rerun | Unchanged while the curated file's SHA-256 is unchanged, unless `--rebuild` is given |
+
+## Database load (`python -m src.cli load`, `load-partition`)
+
+Table `curated.dpwh_projects` (`sql/init/01_schema.sql`):
+
+| Column | Type | Constraint | From curated |
+| --- | --- | --- | --- |
+| `contract_id` | `VARCHAR(64)` | Primary key | `contract_id` |
+| `project_cost` | `NUMERIC` | `>= 0`, nullable (the source `budget` has nulls) | `project_cost` |
+| `physical_accomplishment` | `NUMERIC` | Between 0 and 100, nullable | `physical_accomplishment` |
+| `start_date` | `DATE` | Nullable | `start_date` |
+| `infra_year` | `INTEGER` | Nullable | `infra_year` |
+| `is_delayed` | `BOOLEAN` | `NOT NULL` | `is_delayed` |
+| `status_name` | `VARCHAR(32)` | `NOT NULL` | `status_name` |
+| `record_hash` | `CHAR(64)` | `NOT NULL`, 64 lower-case hex characters | `record_hash` |
+| `pipeline_run_id` | `VARCHAR(128)` | `NOT NULL` | Run that last inserted or changed the row |
+| `loaded_at_utc` | `TIMESTAMPTZ` | `NOT NULL` | When that run loaded the row |
+
+Rows are checked against these constraints before loading. A row that would break one goes to `data/quarantine/load/run_id=<curated run>/<scope>/contracts.parquet` with every curated column, `error_codes`, `pipeline_run_id` and `quarantined_at_utc`, next to `load_report.json` (counts and checksum). The rest are upserted on `contract_id`; an existing row is updated only when its `record_hash` differs, so a rerun on unchanged data inserts and updates nothing. Rows are never deleted by a load.
+
+| Code | Meaning |
+| --- | --- |
+| `Q_LOAD_MISSING_CONTRACT_ID` | No `contract_id` |
+| `Q_LOAD_DUPLICATE_CONTRACT_ID` | `contract_id` appears more than once in the batch (every copy) |
+| `Q_LOAD_NEGATIVE_PROJECT_COST` | `project_cost` below 0 (staging keeps these with `W_NEGATIVE_AMOUNT:budget_php`) |
+| `Q_LOAD_PROGRESS_OUT_OF_RANGE` | `physical_accomplishment` outside 0 to 100 (already quarantined by curated, so normally 0) |
+| `Q_LOAD_MISSING_STATUS` | `status_name` null or blank |
+| `Q_LOAD_BAD_RECORD_HASH` | `record_hash` is not 64 lower-case hex characters |
+
+`load-partition --year YYYY [--month M]` loads one slice of the partitioned dataset the same way and writes a row to `audit.partition_loads` (pipeline run ID, curated run ID, slice path, year, month, rows read, inserted, updated, quarantined, `success` or `failed`, error message, start and finish times in UTC), including for failed attempts.
+
 ## Code reference
 
 | Code | Effect | Meaning |
@@ -287,3 +328,7 @@ Quarantined contracts keep every staged column plus `error_codes` and `quarantin
 | `W_DUPLICATE_COLUMN_MISMATCH:<column>` | Warning | A dropped duplicate column disagrees with its original |
 | `W_BAD_BOOLEAN:<column>` | Warning | Boolean value not recognised |
 | `W_CONTRACTOR_*`, `W_WINNER_NAMES_*` | Warning | See the contractor checks above |
+| `W_REGION_NOT_IN_PSGC`, `W_REGION_AMBIGUOUS_IN_PSGC` | Warning (curated) | Region label has no single PSGC match |
+| `Q_PROGRESS_OUT_OF_RANGE` | Quarantine (curated) | Progress outside 0 to 100 |
+| `Q_ORPHAN_CONTRACT_ID` | Quarantine (curated) | Contractor member without a staged contract |
+| `Q_LOAD_*` | Quarantine (load) | See the database load section |

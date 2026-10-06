@@ -1,4 +1,4 @@
-# Handoff: acquisition, staging and curated complete; over to loading, validation, benchmarking and Airflow
+# Handoff: pipeline implemented end to end; run evidence and Airflow screenshots outstanding
 
 This note records where the pipeline stands and what the next owners need to continue. Read `docs/sources.md` and `docs/data_contract.md` alongside it.
 
@@ -10,7 +10,8 @@ This note records where the pipeline stands and what the next owners need to con
 | `main`, tag `v0.2.0` | Raw ingestion: API extractor (blocked, kept for reference) and checksum-verified file ingestion of the primary source |
 | `main`, tags `v0.2.1`, `v0.2.2` | Spec-aligned `extract_sources(run_id)`, evidence transcripts, and the official PSGC reference source |
 | `main`, tag `v0.3.0` | Staging and curated layers on the BetterGov source, with quarantine, PSGC region check, metrics and `record_hash` |
-| Tests | 92 passing (`pytest -q`) |
+| Branch `feat/m3-load-validate` | Database load, partitioning and partition loads, `validate`, benchmarks, corrected analytics, Airflow DAG and container (next tag `v0.4.0`) |
+| Tests | 105 passing, 1 database test skipped unless a scratch database is configured (`pytest -q`) |
 
 ## Reproduce the raw layer from a fresh clone
 
@@ -107,15 +108,23 @@ For loading and partitioning, `curated_contracts_path(settings)` in `src/transfo
 
 Open question: 40 contracts still have `W_WINNER_NAMES_MISMATCH` after de-duplication.
 
-## Remaining work
+## Load, partitioning, validation, benchmarks and Airflow (implemented, evidence pending)
+
+| Area | State |
+| --- | --- |
+| PostgreSQL | `init-db`, then `load`: hash-guarded upsert into `curated.dpwh_projects`; rows the table rejects go to `data/quarantine/load/` with `Q_LOAD_*` codes; a second load on unchanged data reports `inserted=0, updated=0`. Credentials come from `.env` only |
+| Partitioning | `partition` writes `data/partitioned/dpwh_contracts/start_year=YYYY/start_month=M/`; `load-partition --year --month` loads a slice and logs every attempt to `audit.partition_loads` |
+| Validation | `validate` checks raw manifests and expected hashes, every layer's recorded checksums and row counts, reconciliation raw -> staging -> curated -> partitions, the curated calculations and the database hashes; exit status 1 on any failure |
+| Benchmarks | `benchmark`: CSV, JSON Lines, Parquet (Snappy, Zstandard) and PostgreSQL; write, size, full read and filtered query, median of 5 runs, results in `data/benchmarks/` |
+| Analytics (supplementary) | `analyze`: descriptive statistics, charts and a delay model with insights generated from the computed numbers, in `data/analytics/` |
+| Airflow | `dags/dss150p_pipeline.py` calls only the CLI; `Dockerfile.airflow` and `docker-compose.airflow.yml` run Airflow 2.10.5 with the pipeline's packages in a separate virtual environment. Parsed and run end to end with Airflow 2.10.5 outside Docker during development; the run in Docker and its screenshots and logs are still to be captured |
+
+Still open:
 
 | Area | Next steps |
 | --- | --- |
-| Staging and curated follow-ups | Optional: profile the nested `components`, `bidders` and `coordinates` fields before splitting them into tables; investigate the 40 winner-name mismatches |
-| PostgreSQL | Load `curated_contracts_path(settings)` with `INSERT … ON CONFLICT (contract_id) DO UPDATE` only when `record_hash` differs, so a second load reports inserted=0, updated=0; create `audit.partition_loads`; take credentials from `.env` only; the database runs on host port 5433 because Lab 3 uses 5432 |
-| Validation | Add `python -m src.cli validate` (file hashes, cross-layer row counts, calculations, database hash matches); check implementing-office provinces against the PSGC reference; reconcile curated status counts against `docs/reconciliation_baseline.md` and explain the gap; hand-check about 30 contracts drawn with `random_state=42` on the portal in a normal browser; consistency checks (dates, amounts, coordinates) |
-| Milestone 3 | Benchmark CSV, Parquet (Snappy, Zstd) and PostgreSQL on size and read/write time into `data/benchmarks/`; Hive-partitioned copy in `data/partitioned/` (candidate keys `infra_year` and `region`) |
-| Milestone 4 | DAG at `dags/dss150p_pipeline.py` (the name the spec uses; `dags/dpwh_pipeline_dag.py` is currently empty) that only calls the CLI commands (`extract-file`, `stage`, `curate`, later steps); Airflow needs a host port other than 8080 because Lab 3 uses it. Set `PIPELINE_RUN_ID` for every task to one path-safe value per DAG run, for example `airflow__{{ ts_nodash }}` (letters, digits, `.`, `_` and `-` only): `extract-file` uses it as the raw `run_id` through `extract_sources(run_id)`, and `stage` and `curate` write it to the `pipeline_run_id` column |
+| Evidence (section 7.3) | Transcripts for the full run, the 0/0 second load, `validate`, a partition load, the benchmark and a full clean-room rebuild; Airflow Grid/Graph screenshots, task logs and a `controlled_failure` run |
+| Validation extras | Reconcile curated status counts against `docs/reconciliation_baseline.md`; hand-check about 30 contracts drawn with `random_state=42` on the portal in a normal browser; profile the nested `components`, `bidders` and `coordinates` fields; investigate the 40 winner-name mismatches |
 | Further sources | Only official sources, used to add fields and flag conflicts, never to overwrite the primary source. PhilGEPS Open Data is pending: its terms link returned 404 and download availability is unconfirmed (`docs/sources.md`) |
 
 ## Evidence captured
@@ -126,9 +135,10 @@ Open question: 40 contracts still have `W_WINNER_NAMES_MISMATCH` after de-duplic
 
 - Never modify `data/raw`; never commit anything under `data/` or `.env`.
 - No collection that gets around access controls or bot protection; any new source must pass the admission check in `docs/sources.md`.
-- Commit format `Lastname - Type of Action - project part - short description`; small commits on short-lived branches; `main` stays clean; semantic tags at milestones (next: `v0.3.0` for staging and curated end to end).
+- Commit format `Lastname - Type of Action - project part - short description`; small commits on short-lived branches; `main` stays clean; semantic tags at milestones (next: `v0.4.0` for load, partitioning, validation and benchmarks).
 
 ## Environment notes
 
 - Local development has run on Python 3.14 (WSL) and the Docker image uses Python 3.11; tests pass on both lines.
-- Docker: `docker compose up -d postgres`, then `docker compose run --rm pipeline validate-env --check-db`.
+- Docker: `docker compose up -d postgres`, then `docker compose run --rm pipeline validate-env --check-db`. The schema in `sql/init/` changed in this round, so an existing volume must be recreated once with `docker compose down -v`.
+- Airflow: `docker compose -f docker-compose.yml -f docker-compose.airflow.yml up -d --build`; set `AIRFLOW_HOST_PORT` in `.env` if 8080 is taken (Lab 3 uses it) and `AIRFLOW_UID` to `id -u`.

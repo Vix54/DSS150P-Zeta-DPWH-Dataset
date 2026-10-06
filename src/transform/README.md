@@ -1,6 +1,6 @@
 # Transformation layers
 
-Business rules live here and are run through the command line (`python -m src.cli stage` and `python -m src.cli curate`), so Airflow only has to call those commands. The full rules, column lists and error codes are in `docs/data_contract.md`.
+Business rules live here and are run through the command line (`python -m src.cli stage`, `curate` and `partition`), so Airflow only has to call those commands. The full rules, column lists and error codes are in `docs/data_contract.md`.
 
 ## Staging (`staging.py`, `cleaning.py`, `contractors.py`)
 
@@ -19,4 +19,9 @@ Business rules live here and are run through the command line (`python -m src.cl
 - Adds `processed_at_utc` and a deterministic `record_hash` for hash-guarded loading.
 - Quarantines progress values outside 0 to 100 (which the database schema rejects) and orphan contractor rows.
 
-For loading and partitioning, `src.transform.curated.curated_contracts_path(settings)` returns the latest `dpwh_contracts.parquet`.
+## Partitioning (`partition.py`)
+
+- Writes the curated contracts as Hive-style Parquet, `data/partitioned/dpwh_contracts/start_year=YYYY/start_month=M/part-0.parquet`, keyed on `start_date`; contracts without a start date go to the `__HIVE_DEFAULT_PARTITION__` folder.
+- Records the curated run, row counts and one SHA-256 per file in `_manifest.json`, and stops if the partition rows do not add up to the curated rows.
+
+Loading (`src/load/`), validation (`src/validate/`) and benchmarks (`src/benchmark/`) read the curated file through `src.transform.curated.read_curated_contracts(settings)`, which verifies its checksum first.
