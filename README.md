@@ -137,3 +137,21 @@ If port 5432 is already used on your machine, set `POSTGRES_PORT` to another val
 - Commit messages: `Lastname - Action - module - short description`, for example `Risma - Fix - extract - recreated code structure`.
 - Work happens on short-lived branches; `main` stays clean.
 - Milestone breakthroughs are marked with semantic tags (`v0.1.0`, `v0.2.0`, ...).
+
+
+## Environment Setup & Dockerization
+
+This project relies on Docker and Docker Compose to ensure full environment reproducibility across different machines. The containerized stack includes Apache Airflow for orchestration and PostgreSQL for the data warehouse.
+
+### 1. Configuration
+Before starting, duplicate the `.env.example` file, rename it to `.env`, and populate it with your local credentials. The `.env` file is ignored by Git to prevent secrets leakage.
+
+### 2. Starting the Environment
+To initialize the pipeline environment and spin up all dependent containers in the background, run:
+`docker compose up -d`
+
+The Airflow UI will become accessible at `http://localhost:8080`.
+
+### 3. Stopping the Environment
+To safely halt the orchestration and database containers without destroying the mounted data volumes, run:
+`docker compose down`
