@@ -1,7 +1,7 @@
 # Technical Architecture Review
 
 **Project:** Group Zeta DPWH Infrastructure Pipeline  
-**Scope:** Evaluation of the architectural criteria set forth in Section 8 of the Modular Data Pipeline Specification, benchmarked against pipeline tag `v0.4.0` and real-data executions recorded in `docs/evidence/20`–`29`.
+**Scope:** Evaluation of the architectural criteria set forth in Section 8 of the Modular Data Pipeline Specification, benchmarked against pipeline tag `v0.4.0` and real-data executions recorded in `docs/evidence/20`–`31`.
 
 ---
 
@@ -104,7 +104,7 @@ Notably, PostgreSQL exhibited the highest write time and a footprint larger than
 
 **Mitigated Systemic Hazards:**
 * **DAG Parser Collapse:** Airflow dynamically evaluates DAG files at regular intervals. Encapsulating domain logic or complex dependencies within DAG scripts causes parse-time failures, dropping the entire workflow from the UI. An earlier iteration of the team's DAG referenced a task variable and an import that did not exist; the file failed to parse, disabling pipeline visualization and monitoring.
-* **Dependency Isolation:** Airflow 2.10.5 pins internal constraints (SQLAlchemy 1.4.54, pandas 2.1.4), whereas the pipeline codebase requires modern data libraries (SQLAlchemy 2.1.1, pandas 3.0.6). CLI execution decouples the runtime environment, allowing the pipeline to execute in an isolated virtual environment inside the Airflow container (`/opt/pipeline-venv`).
+* **Dependency Isolation:** Airflow 2.10.5 pins internal constraints (SQLAlchemy 1.4.54, pandas 2.1.4), whereas the pipeline codebase requires modern data libraries (SQLAlchemy 2.1.1, pandas 3.0.6). CLI execution decouples the runtime environment, allowing the pipeline to execute in an isolated virtual environment inside the Airflow container (`/opt/pipeline-venv`); the container's task logs show every task running `/opt/pipeline-venv/bin/python -m src.cli <command>` (*Reference: `docs/evidence/31`*).
 * **Testability Beyond Orchestration:** Embedding transformations within DAG files restricts testing strictly to the scheduler harness. Delegating processing to the CLI allows 105 automated tests to validate operations locally without Airflow, and the same commands run unchanged by hand, in the pipeline container, or under Airflow.
 * **Parse-Time Resource Bottlenecks:** Heavy module imports and data reads at the top level of DAG files execute on every scheduler parsing loop, degrading scheduler responsiveness.
 * **Implementation Divergence:** Separate DAG implementations risk logic drift between ad-hoc local executions and production schedules. Single-entry CLI wrappers ensure execution symmetry across all runtime environments.
@@ -124,7 +124,7 @@ Notably, PostgreSQL exhibited the highest write time and a footprint larger than
 * **Single-Transaction Upsert Guarantees:** Relational updates load the batch into a temporary staging relation, executing the final merge (`ON CONFLICT (contract_id) DO UPDATE ... WHERE record_hash IS DISTINCT FROM EXCLUDED.record_hash`) within a single atomic database transaction. Any failure before commit triggers an automatic rollback, and the primary key makes a duplicate contract impossible.
 * **Granular Audit Trails:** `load-partition` logs every execution attempt—including failures—to `audit.partition_loads`, ensuring retry histories remain fully observable.
 
-**Empirical Validation:** Secondary load passes over verified inputs consistently yielded zero insertions and zero updates (`inserted=0, updated=0`, *Reference: `docs/evidence/23`*). Rebuilding downstream layers following deliberate file corruption similarly converged on a `0/0` operational delta (*Reference: `docs/evidence/28`*). The DAG's `controlled_failure` parameter fails `validate` on its first try so that the automatic retry and recovery can be observed; its run in the Airflow container is still to be captured.
+**Empirical Validation:** Secondary load passes over verified inputs consistently yielded zero insertions and zero updates (`inserted=0, updated=0`, *Reference: `docs/evidence/23`*). Rebuilding downstream layers following deliberate file corruption similarly converged on a `0/0` operational delta (*Reference: `docs/evidence/28`*). The DAG's `controlled_failure` parameter fails `validate` on its first try so that the automatic retry and recovery can be observed: in the Airflow container, `validate` failed on attempt 1, was retried automatically, and passed on attempt 2 with 0 failed checks (*Reference: `docs/evidence/31`, `docs/images/airflow_03_validate_try1.png`, `airflow_04_validate_try2.png`*).
 
 **Known Limitation:** If `extract-file` were interrupted after creating a raw run directory but before writing its manifest, a retry under the same run identifier would find the directory and stop rather than resume. Clearing or resuming an incomplete raw run would close this gap; it has not occurred in practice.
 

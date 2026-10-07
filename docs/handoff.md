@@ -1,7 +1,7 @@
 # Project Handoff Documentation
 
 **Project:** DPWH Infrastructure Data Pipeline (Group Zeta)  
-**Status:** Pipeline Implementation and Validation Complete; Airflow Containerized Execution Pending Final Log Capture  
+**Status:** Pipeline Implementation, Validation and Airflow Containerized Execution Complete  
 **Accompanying Specifications:** `docs/sources.md`, `docs/data_contract.md`, `docs/architecture_review.md`
 
 ---
@@ -15,6 +15,7 @@
 | `main` (`v0.2.1`, `v0.2.2`) | Section 7 specification alignment: `extract_sources(run_id)`, acceptance transcripts, and the PSA Philippine Standard Geographic Code (PSGC) reference dataset. |
 | `main` (`v0.3.0`) | Staging and Curated Layers: Processing the primary BetterGov asset, PSGC geographic validation, quarantine routing, metrics calculation, and `record_hash` generation. |
 | `main` (`v0.4.0`) | Relational Loading and Optimization: Idempotent PostgreSQL upsert, temporal partitioning, partition-level loads, `validate` suite, storage benchmarks, descriptive analytics, and containerized Airflow DAG infrastructure (`docs/evidence/20`–`29`). |
+| `main` (`v0.4.2`) | Airflow 2.10.5 runs in its container: full runs and a controlled-failure run that recovers on retry (`docs/evidence/30`–`31`, `docs/images/airflow_*.png`). |
 | **Test Suite** | 105 passed tests, 1 expected database test skipped when scratch environment is unconfigured (`pytest -q`). |
 
 ---
@@ -133,7 +134,7 @@ Data transformations execute via CLI entry points and conform to `docs/data_cont
 | **Performance Benchmarks** | Executed via `benchmark`: benchmarks CSV, JSON Lines, Parquet (Snappy, Zstandard), and PostgreSQL across write speed, file size, full scans, and filtered queries (median of 5 runs). |
 | **Workflow Orchestration** | Defined in `dags/dss150p_pipeline.py` via CLI execution points. Environment encapsulated in `Dockerfile.airflow` and `docker-compose.airflow.yml` under Airflow 2.10.5. |
 
-Execution Results on Real Data (Evidence captures 20–29):
+Execution Results on Real Data (Evidence captures 20–31):
 * **Environment Validation:** Local host 25 passed with 0 failures (evidence 20); rebuilt Docker image 24 passed with 1 expected skip (evidence 29).
 * **Clean-Room Build:** Clean-room rebuild confirmed identical counts: 248,421 staged, 248,418 curated, 3 quarantined, 248,121 PSGC-matched, and 23,769 delayed contracts.
 * **Partition Distribution:** 125 temporal partitions generated; 7,669 contracts without valid start dates isolated in `__HIVE_DEFAULT_PARTITION__`.
@@ -141,6 +142,7 @@ Execution Results on Real Data (Evidence captures 20–29):
 * **Automated Validation:** 30 validation checks passed with 0 failures.
 * **Partition Ingestion Verification:** Loading the May 2023 partition (`load-partition --year 2023 --month 5`) processed 3,002 rows, returning 0 inserts and 0 updates, logging an audit status of `success`.
 * **Fault Recovery Test:** Deliberately corrupting a curated file caused `validate` to fail with exit code 1. Executing `curate --rebuild` restored state, validation passed, and downstream loading returned 0/0.
+* **Airflow Orchestration:** In the Airflow container, full runs completed every task through the CLI (`load` reported `inserted=0, updated=0, unchanged=248418`; `validate` passed 30 checks). A partition-mode run with `controlled_failure` failed `validate` on attempt 1, retried automatically and passed on attempt 2 (evidence 30–31, screenshots `docs/images/airflow_01`–`06`).
 
 Storage and Query Benchmarks (Median of 5 runs; 248,418 rows $\times$ 43 columns; Filter: `status_name = 'On-Going'` returning 34,728 rows):
 
@@ -158,7 +160,6 @@ Storage and Query Benchmarks (Median of 5 runs; 248,418 rows $\times$ 43 columns
 
 | Scope | Required Actions |
 | :--- | :--- |
-| **Airflow Evidence Capture** | Execute the production container stack (`docker compose -f docker-compose.yml -f docker-compose.airflow.yml up -d --build`). Capture UI Grid/Graph status views, container execution logs, and run transcripts with `controlled_failure` to demonstrate automated retry and recovery. |
 | **Secondary Validation** | Reconcile curated status totals against `docs/reconciliation_baseline.md`. Perform browser-based manual spot-checks on 30 randomly sampled contracts (`random_state=42`). Profile nested structures (`components`, `bidders`, `coordinates`) and investigate the remaining 40 winner-name edge cases. |
 | **Supplemental Data Ingestion** | Ingest verified secondary datasets strictly to corroborate existing entities; secondary sources must never overwrite primary records. Admission of PhilGEPS Open Data is pending confirmation of its download availability and terms. |
 
@@ -170,7 +171,7 @@ Storage and Query Benchmarks (Median of 5 runs; 248,418 rows $\times$ 43 columns
 2. **Ethical Collection Posture:** Refrain from deploying evasion techniques or bot-mitigation bypasses. All candidate data sources must clear the admission rubric in `docs/sources.md`.
 3. **Commit and Branching Standards:** Follow the team commit standard:  
    `Lastname - Type of Action - project part - short description`  
-   Maintain focused commits on short-lived feature branches, preserving a clean history on `main` alongside semantic milestone tags (targeting the next patch tag upon capturing Airflow execution evidence).
+   Maintain focused commits on short-lived feature branches, preserving a clean history on `main` alongside semantic milestone tags (next tags at further milestones).
 
 ---
 
@@ -179,4 +180,4 @@ Storage and Query Benchmarks (Median of 5 runs; 248,418 rows $\times$ 43 columns
 * Local development runs on Python 3.14 (WSL); the Docker image uses Python 3.11. Tests and environment checks pass on both.
 * The database is published on host port 5433 in local `.env` files because another course project already uses 5432; containers always reach it on the internal port 5432.
 * The schema in `sql/init/` changed in `v0.4.0`, so an existing database volume must be recreated once with `docker compose down -v` (the load rebuilds its contents).
-* For Airflow, set `AIRFLOW_HOST_PORT` in `.env` if 8080 is taken, and `AIRFLOW_UID` to the output of `id -u` on Linux and WSL.
+* For Airflow, set `AIRFLOW_HOST_PORT` in `.env` if 8080 is taken (8081 was used alongside Lab 3), and `AIRFLOW_UID` to the output of `id -u` on Linux and WSL. Start it with `docker compose -f docker-compose.yml -f docker-compose.airflow.yml up -d --build`; un-pausing the DAG starts one scheduled run immediately.

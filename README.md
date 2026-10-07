@@ -2,7 +2,7 @@
 
 Group Zeta's modular, rerun-safe data pipeline for DPWH infrastructure project data, built to the course's Modular Data Pipeline Specification (Python, PostgreSQL, Parquet, Docker Compose, Apache Airflow).
 
-**Status:** Milestones 1 to 3 implemented: raw ingestion of the primary source and the PSGC reference, staging, curated, hash-guarded PostgreSQL load, partitioning and partition loads, the `validate` contract checker and storage benchmarks. Milestone 4: the Airflow DAG and its container are in place; Airflow run evidence is still to be captured.
+**Status:** Milestones 1 to 3 implemented: raw ingestion of the primary source and the PSGC reference, staging, curated, hash-guarded PostgreSQL load, partitioning and partition loads, the `validate` contract checker and storage benchmarks. Milestone 4: the Airflow DAG runs in its container, including a controlled failure that recovers on retry (evidence 30 and 31, screenshots in `docs/images/airflow_*.png`).
 
 ## Data sources
 
@@ -101,7 +101,7 @@ python -m src.cli load
 python -m src.cli load
 ```
 
-`init-db` applies `sql/init/*.sql` (schemas `curated`, `audit` and `airflow`, table `curated.dpwh_projects`, table `audit.partition_loads`). Docker applies the same files automatically when the Postgres volume is first created, so `init-db` is only needed for a database that already exists.
+`init-db` applies `sql/init/*.sql` (schemas `curated` and `audit`, table `curated.dpwh_projects`, table `audit.partition_loads`). Docker applies the same files automatically when the Postgres volume is first created, so `init-db` is only needed for a database that already exists.
 
 `load` reads the latest curated run (checksum verified), checks each row against the table's constraints, sends rows the table cannot accept to `data/quarantine/load/run_id=<run>/scope=full/` with an error code (for example `Q_LOAD_NEGATIVE_PROJECT_COST`), and upserts the rest with `INSERT ... ON CONFLICT (contract_id) DO UPDATE ... WHERE record_hash IS DISTINCT FROM EXCLUDED.record_hash`. The second run on unchanged data must report `inserted=0, updated=0`.
 
@@ -171,7 +171,7 @@ docker compose -f docker-compose.yml -f docker-compose.airflow.yml logs -f airfl
 docker compose -f docker-compose.yml -f docker-compose.airflow.yml down
 ```
 
-The UI is at `http://localhost:<AIRFLOW_HOST_PORT>` (default 8080; set another port in `.env` if 8080 is taken), with the user and password from `_AIRFLOW_WWW_USER_USERNAME` and `_AIRFLOW_WWW_USER_PASSWORD`. On Linux and WSL set `AIRFLOW_UID` in `.env` to the output of `id -u` so files written to `data/` stay yours. `Dockerfile.airflow` builds Airflow 2.10.5 with the pipeline's own packages in a separate virtual environment (`/opt/pipeline-venv`), because the pipeline's pins (SQLAlchemy 2, pandas 3) do not fit Airflow 2's own requirements. Airflow keeps its metadata in the `airflow` schema of the same database.
+The UI is at `http://localhost:<AIRFLOW_HOST_PORT>` (default 8080; set another port in `.env` if 8080 is taken), with the user and password from `_AIRFLOW_WWW_USER_USERNAME` and `_AIRFLOW_WWW_USER_PASSWORD`. On Linux and WSL set `AIRFLOW_UID` in `.env` to the output of `id -u` so files written to `data/` stay yours. `Dockerfile.airflow` builds Airflow 2.10.5 with the pipeline's own packages in a separate virtual environment (`/opt/pipeline-venv`), because the pipeline's pins (SQLAlchemy 2, pandas 3) do not fit Airflow 2's own requirements. Airflow keeps its own metadata tables in the `public` schema of the same database; the pipeline's tables live in `curated` and `audit`.
 
 ## Repository layout
 
