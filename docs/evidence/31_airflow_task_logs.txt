@@ -1,0 +1,316 @@
+===== /opt/airflow/logs/dag_id=dss150p_pipeline/run_id=manual__2026-10-07T00:02:42+00:00/task_id=load/attempt=1.log
+[2026-10-07T00:08:28.405+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-10-07T00:08:28.435+0000] {taskinstance.py:2614} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: dss150p_pipeline.load manual__2026-10-07T00:02:42+00:00 [queued]>
+[2026-10-07T00:08:28.449+0000] {taskinstance.py:2614} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: dss150p_pipeline.load manual__2026-10-07T00:02:42+00:00 [queued]>
+[2026-10-07T00:08:28.450+0000] {taskinstance.py:2867} INFO - Starting attempt 1 of 3
+[2026-10-07T00:08:28.467+0000] {taskinstance.py:2890} INFO - Executing <Task(BashOperator): load> on 2026-10-07 00:02:42+00:00
+[2026-10-07T00:08:28.473+0000] {standard_task_runner.py:72} INFO - Started process 471 to run task
+[2026-10-07T00:08:28.477+0000] {standard_task_runner.py:104} INFO - Running: ['airflow', 'tasks', 'run', 'dss150p_pipeline', 'load', 'manual__2026-10-07T00:02:42+00:00', '--job-id', '13', '--raw', '--subdir', 'DAGS_FOLDER/dss150p_pipeline.py', '--cfg-path', '/tmp/tmpw_iztwai']
+[2026-10-07T00:08:28.479+0000] {standard_task_runner.py:105} INFO - Job 13: Subtask load
+[2026-10-07T00:08:28.548+0000] {task_command.py:467} INFO - Running <TaskInstance: dss150p_pipeline.load manual__2026-10-07T00:02:42+00:00 [running]> on host e5f048433cb5
+[2026-10-07T00:08:28.675+0000] {taskinstance.py:3134} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='group_zeta' AIRFLOW_CTX_DAG_ID='dss150p_pipeline' AIRFLOW_CTX_TASK_ID='load' AIRFLOW_CTX_EXECUTION_DATE='2026-10-07T00:02:42+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-10-07T00:02:42+00:00'
+[2026-10-07T00:08:28.677+0000] {taskinstance.py:732} INFO - ::endgroup::
+[2026-10-07T00:08:28.697+0000] {subprocess.py:78} INFO - Tmp dir root location: /tmp
+[2026-10-07T00:08:28.697+0000] {subprocess.py:88} INFO - Running command: ['/usr/bin/bash', '-c', '/opt/pipeline-venv/bin/python -m src.cli load']
+[2026-10-07T00:08:28.709+0000] {subprocess.py:99} INFO - Output:
+[2026-10-07T00:08:34.316+0000] {subprocess.py:106} INFO - Loading curated run 20261006T231240Z (248418 contracts, checksum verified)
+[2026-10-07T00:08:34.317+0000] {subprocess.py:106} INFO - Rows read: 248418, loadable: 248418, quarantined: 0
+[2026-10-07T00:08:34.317+0000] {subprocess.py:106} INFO - Load complete into curated.dpwh_projects: inserted=0, updated=0, unchanged=248418
+[2026-10-07T00:08:34.536+0000] {subprocess.py:110} INFO - Command exited with return code 0
+[2026-10-07T00:08:34.572+0000] {taskinstance.py:341} INFO - ::group::Post task execution logs
+[2026-10-07T00:08:34.572+0000] {taskinstance.py:353} INFO - Marking task as SUCCESS. dag_id=dss150p_pipeline, task_id=load, run_id=manual__2026-10-07T00:02:42+00:00, execution_date=20261007T000242, start_date=20261007T000828, end_date=20261007T000834
+[2026-10-07T00:08:34.642+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-10-07T00:08:34.672+0000] {taskinstance.py:3901} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-10-07T00:08:34.676+0000] {local_task_job_runner.py:245} INFO - ::endgroup::
+===== /opt/airflow/logs/dag_id=dss150p_pipeline/run_id=manual__2026-10-07T00:02:42+00:00/task_id=validate/attempt=1.log
+[2026-10-07T00:08:35.648+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-10-07T00:08:35.669+0000] {taskinstance.py:2614} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: dss150p_pipeline.validate manual__2026-10-07T00:02:42+00:00 [queued]>
+[2026-10-07T00:08:35.682+0000] {taskinstance.py:2614} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: dss150p_pipeline.validate manual__2026-10-07T00:02:42+00:00 [queued]>
+[2026-10-07T00:08:35.683+0000] {taskinstance.py:2867} INFO - Starting attempt 1 of 3
+[2026-10-07T00:08:35.709+0000] {taskinstance.py:2890} INFO - Executing <Task(BashOperator): validate> on 2026-10-07 00:02:42+00:00
+[2026-10-07T00:08:35.715+0000] {standard_task_runner.py:72} INFO - Started process 485 to run task
+[2026-10-07T00:08:35.722+0000] {standard_task_runner.py:104} INFO - Running: ['airflow', 'tasks', 'run', 'dss150p_pipeline', 'validate', 'manual__2026-10-07T00:02:42+00:00', '--job-id', '14', '--raw', '--subdir', 'DAGS_FOLDER/dss150p_pipeline.py', '--cfg-path', '/tmp/tmp530zyb1e']
+[2026-10-07T00:08:35.727+0000] {standard_task_runner.py:105} INFO - Job 14: Subtask validate
+[2026-10-07T00:08:35.789+0000] {task_command.py:467} INFO - Running <TaskInstance: dss150p_pipeline.validate manual__2026-10-07T00:02:42+00:00 [running]> on host e5f048433cb5
+[2026-10-07T00:08:35.909+0000] {taskinstance.py:3134} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='group_zeta' AIRFLOW_CTX_DAG_ID='dss150p_pipeline' AIRFLOW_CTX_TASK_ID='validate' AIRFLOW_CTX_EXECUTION_DATE='2026-10-07T00:02:42+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-10-07T00:02:42+00:00'
+[2026-10-07T00:08:35.909+0000] {taskinstance.py:732} INFO - ::endgroup::
+[2026-10-07T00:08:35.924+0000] {subprocess.py:78} INFO - Tmp dir root location: /tmp
+[2026-10-07T00:08:35.925+0000] {subprocess.py:88} INFO - Running command: ['/usr/bin/bash', '-c', '/opt/pipeline-venv/bin/python -m src.cli validate']
+[2026-10-07T00:08:35.940+0000] {subprocess.py:99} INFO - Output:
+[2026-10-07T00:08:45.656+0000] {subprocess.py:106} INFO - [PASS] Raw bettergov_hf run 20261006T231240Z: 1 file(s) match manifest.jsonl
+[2026-10-07T00:08:45.657+0000] {subprocess.py:106} INFO - [PASS] Raw bettergov_hf run 20261006T231240Z: stored file hash equals expected_sha256 in config/settings.yml
+[2026-10-07T00:08:45.657+0000] {subprocess.py:106} INFO - [PASS] Raw psa_psgc run 20261006T231240Z: 1 file(s) match manifest.jsonl
+[2026-10-07T00:08:45.657+0000] {subprocess.py:106} INFO - [PASS] Raw psa_psgc run 20261006T231240Z: stored file hash equals expected_sha256 in config/settings.yml
+[2026-10-07T00:08:45.657+0000] {subprocess.py:106} INFO - [PASS] Staging run 20261006T231240Z: quarantine/contracts.parquet matches its recorded SHA-256 and row count (0 rows)
+[2026-10-07T00:08:45.657+0000] {subprocess.py:106} INFO - [PASS] Staging run 20261006T231240Z: staging/contract_contractors.parquet matches its recorded SHA-256 and row count (253273 rows)
+[2026-10-07T00:08:45.658+0000] {subprocess.py:106} INFO - [PASS] Staging run 20261006T231240Z: staging/contracts.parquet matches its recorded SHA-256 and row count (248421 rows)
+[2026-10-07T00:08:45.658+0000] {subprocess.py:106} INFO - [PASS] Reconciliation raw -> staging: raw rows 248421 = staging rows in 248421
+[2026-10-07T00:08:45.658+0000] {subprocess.py:106} INFO - [PASS] Reconciliation staging: staged 248421 + quarantined 0 = rows in 248421
+[2026-10-07T00:08:45.658+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: curated/contract_contractors.parquet matches its recorded SHA-256 and row count (253270 rows)
+[2026-10-07T00:08:45.658+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: curated/dpwh_contracts.parquet matches its recorded SHA-256 and row count (248418 rows)
+[2026-10-07T00:08:45.658+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: curated/psgc_regions.parquet matches its recorded SHA-256 and row count (18 rows)
+[2026-10-07T00:08:45.658+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: quarantine/curated/contract_contractors.parquet matches its recorded SHA-256 and row count (0 rows)
+[2026-10-07T00:08:45.658+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: quarantine/curated/contracts.parquet matches its recorded SHA-256 and row count (3 rows)
+[2026-10-07T00:08:45.659+0000] {subprocess.py:106} INFO - [PASS] Lineage: curated run was built from staging run 20261006T231240Z
+[2026-10-07T00:08:45.659+0000] {subprocess.py:106} INFO - [PASS] Reconciliation staging -> curated: staged rows 248421 = curated rows in 248421
+[2026-10-07T00:08:45.659+0000] {subprocess.py:106} INFO - [PASS] Reconciliation curated: curated 248418 + quarantined 3 = rows in 248421
+[2026-10-07T00:08:45.659+0000] {subprocess.py:106} INFO - [PASS] Invariant: contract_id is present and unique in all 248418 curated rows
+[2026-10-07T00:08:45.659+0000] {subprocess.py:106} INFO - [PASS] Invariant: physical_accomplishment is within 0 to 100 wherever present
+[2026-10-07T00:08:45.659+0000] {subprocess.py:106} INFO - [PASS] Invariant: record_hash recomputed from business columns matches for every row (0 mismatches)
+[2026-10-07T00:08:45.659+0000] {subprocess.py:106} INFO - [PASS] Invariant: award_savings_php = abc_php - award_amount_php
+[2026-10-07T00:08:45.659+0000] {subprocess.py:106} INFO - [PASS] Invariant: award_to_abc_pct = award_amount_php / abc_php * 100
+[2026-10-07T00:08:45.660+0000] {subprocess.py:106} INFO - [PASS] Invariant: is_delayed follows the delay rule as of 2026-01-22 (23769 delayed)
+[2026-10-07T00:08:45.660+0000] {subprocess.py:106} INFO - [PASS] Invariant: region_matches_psgc agrees with region_psgc_code
+[2026-10-07T00:08:45.660+0000] {subprocess.py:106} INFO - [PASS] Partitions: built from the current curated file (curated run 20261006T231240Z)
+[2026-10-07T00:08:45.660+0000] {subprocess.py:106} INFO - [PASS] Partitions: all 125 partition files match _manifest.json
+[2026-10-07T00:08:45.660+0000] {subprocess.py:106} INFO - [PASS] Reconciliation curated -> partitions: 248418 partition rows = 248418 curated rows
+[2026-10-07T00:08:45.660+0000] {subprocess.py:106} INFO - [PASS] Database (all contracts): every loadable curated contract is in curated.dpwh_projects (0 missing of 248418)
+[2026-10-07T00:08:45.660+0000] {subprocess.py:106} INFO - [PASS] Database (all contracts): record_hash in the database matches the curated file (0 differ)
+[2026-10-07T00:08:45.660+0000] {subprocess.py:106} INFO - [PASS] Database: no rows outside the current curated run (0 extra)
+[2026-10-07T00:08:45.660+0000] {subprocess.py:106} INFO - Result: 30 passed, 0 failed, 0 warnings, 0 skipped
+[2026-10-07T00:08:45.877+0000] {subprocess.py:110} INFO - Command exited with return code 0
+[2026-10-07T00:08:45.910+0000] {taskinstance.py:341} INFO - ::group::Post task execution logs
+[2026-10-07T00:08:45.910+0000] {taskinstance.py:353} INFO - Marking task as SUCCESS. dag_id=dss150p_pipeline, task_id=validate, run_id=manual__2026-10-07T00:02:42+00:00, execution_date=20261007T000242, start_date=20261007T000835, end_date=20261007T000845
+[2026-10-07T00:08:45.972+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-10-07T00:08:45.992+0000] {taskinstance.py:3901} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-10-07T00:08:45.996+0000] {local_task_job_runner.py:245} INFO - ::endgroup::
+===== /opt/airflow/logs/dag_id=dss150p_pipeline/run_id=manual__2026-10-07T00:02:45+00:00/task_id=load/attempt=1.log
+[2026-10-07T00:13:38.176+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-10-07T00:13:38.199+0000] {taskinstance.py:2614} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: dss150p_pipeline.load manual__2026-10-07T00:02:45+00:00 [queued]>
+[2026-10-07T00:13:38.215+0000] {taskinstance.py:2614} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: dss150p_pipeline.load manual__2026-10-07T00:02:45+00:00 [queued]>
+[2026-10-07T00:13:38.215+0000] {taskinstance.py:2867} INFO - Starting attempt 1 of 3
+[2026-10-07T00:13:38.264+0000] {taskinstance.py:2890} INFO - Executing <Task(BashOperator): load> on 2026-10-07 00:02:45+00:00
+[2026-10-07T00:13:38.276+0000] {standard_task_runner.py:72} INFO - Started process 638 to run task
+[2026-10-07T00:13:38.278+0000] {standard_task_runner.py:104} INFO - Running: ['airflow', 'tasks', 'run', 'dss150p_pipeline', 'load', 'manual__2026-10-07T00:02:45+00:00', '--job-id', '20', '--raw', '--subdir', 'DAGS_FOLDER/dss150p_pipeline.py', '--cfg-path', '/tmp/tmpte67b7vl']
+[2026-10-07T00:13:38.281+0000] {standard_task_runner.py:105} INFO - Job 20: Subtask load
+[2026-10-07T00:13:38.367+0000] {task_command.py:467} INFO - Running <TaskInstance: dss150p_pipeline.load manual__2026-10-07T00:02:45+00:00 [running]> on host e5f048433cb5
+[2026-10-07T00:13:38.483+0000] {taskinstance.py:3134} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='group_zeta' AIRFLOW_CTX_DAG_ID='dss150p_pipeline' AIRFLOW_CTX_TASK_ID='load' AIRFLOW_CTX_EXECUTION_DATE='2026-10-07T00:02:45+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-10-07T00:02:45+00:00'
+[2026-10-07T00:13:38.484+0000] {taskinstance.py:732} INFO - ::endgroup::
+[2026-10-07T00:13:38.505+0000] {subprocess.py:78} INFO - Tmp dir root location: /tmp
+[2026-10-07T00:13:38.505+0000] {subprocess.py:88} INFO - Running command: ['/usr/bin/bash', '-c', '/opt/pipeline-venv/bin/python -m src.cli load-partition --year 2023 --month 5']
+[2026-10-07T00:13:38.516+0000] {subprocess.py:99} INFO - Output:
+[2026-10-07T00:13:39.223+0000] {subprocess.py:106} INFO - Loading partition start_year=2023/start_month=5 from curated run 20261006T231240Z (3002 rows, checksum verified)
+[2026-10-07T00:13:39.223+0000] {subprocess.py:106} INFO - Rows read: 3002, loadable: 3002, quarantined: 0
+[2026-10-07T00:13:39.223+0000] {subprocess.py:106} INFO - Load complete into curated.dpwh_projects: inserted=0, updated=0, unchanged=3002
+[2026-10-07T00:13:39.223+0000] {subprocess.py:106} INFO - Audit row written to audit.partition_loads: status=success, inserted=0, updated=0
+[2026-10-07T00:13:39.406+0000] {subprocess.py:110} INFO - Command exited with return code 0
+[2026-10-07T00:13:39.454+0000] {taskinstance.py:341} INFO - ::group::Post task execution logs
+[2026-10-07T00:13:39.454+0000] {taskinstance.py:353} INFO - Marking task as SUCCESS. dag_id=dss150p_pipeline, task_id=load, run_id=manual__2026-10-07T00:02:45+00:00, execution_date=20261007T000245, start_date=20261007T001338, end_date=20261007T001339
+[2026-10-07T00:13:39.501+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-10-07T00:13:39.530+0000] {taskinstance.py:3901} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-10-07T00:13:39.535+0000] {local_task_job_runner.py:245} INFO - ::endgroup::
+===== /opt/airflow/logs/dag_id=dss150p_pipeline/run_id=manual__2026-10-07T00:02:45+00:00/task_id=validate/attempt=1.log
+[2026-10-07T00:13:40.545+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-10-07T00:13:40.572+0000] {taskinstance.py:2614} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: dss150p_pipeline.validate manual__2026-10-07T00:02:45+00:00 [queued]>
+[2026-10-07T00:13:40.584+0000] {taskinstance.py:2614} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: dss150p_pipeline.validate manual__2026-10-07T00:02:45+00:00 [queued]>
+[2026-10-07T00:13:40.585+0000] {taskinstance.py:2867} INFO - Starting attempt 1 of 3
+[2026-10-07T00:13:40.613+0000] {taskinstance.py:2890} INFO - Executing <Task(BashOperator): validate> on 2026-10-07 00:02:45+00:00
+[2026-10-07T00:13:40.619+0000] {standard_task_runner.py:72} INFO - Started process 651 to run task
+[2026-10-07T00:13:40.625+0000] {standard_task_runner.py:104} INFO - Running: ['airflow', 'tasks', 'run', 'dss150p_pipeline', 'validate', 'manual__2026-10-07T00:02:45+00:00', '--job-id', '21', '--raw', '--subdir', 'DAGS_FOLDER/dss150p_pipeline.py', '--cfg-path', '/tmp/tmp2pon2vjr']
+[2026-10-07T00:13:40.626+0000] {standard_task_runner.py:105} INFO - Job 21: Subtask validate
+[2026-10-07T00:13:40.702+0000] {task_command.py:467} INFO - Running <TaskInstance: dss150p_pipeline.validate manual__2026-10-07T00:02:45+00:00 [running]> on host e5f048433cb5
+[2026-10-07T00:13:40.810+0000] {taskinstance.py:3134} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='group_zeta' AIRFLOW_CTX_DAG_ID='dss150p_pipeline' AIRFLOW_CTX_TASK_ID='validate' AIRFLOW_CTX_EXECUTION_DATE='2026-10-07T00:02:45+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-10-07T00:02:45+00:00'
+[2026-10-07T00:13:40.812+0000] {taskinstance.py:732} INFO - ::endgroup::
+[2026-10-07T00:13:40.827+0000] {subprocess.py:78} INFO - Tmp dir root location: /tmp
+[2026-10-07T00:13:40.827+0000] {subprocess.py:88} INFO - Running command: ['/usr/bin/bash', '-c', "echo 'Controlled failure: validate fails on try 1 so the retry and recovery can be observed' && exit 1"]
+[2026-10-07T00:13:40.838+0000] {subprocess.py:99} INFO - Output:
+[2026-10-07T00:13:40.840+0000] {subprocess.py:106} INFO - Controlled failure: validate fails on try 1 so the retry and recovery can be observed
+[2026-10-07T00:13:40.840+0000] {subprocess.py:110} INFO - Command exited with return code 1
+[2026-10-07T00:13:40.857+0000] {taskinstance.py:3313} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 763, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 734, in _execute_callable
+    return ExecutionCallableRunner(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/utils/operator_helpers.py", line 252, in run
+    return self.func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/baseoperator.py", line 424, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/operators/bash.py", line 276, in execute
+    raise AirflowException(
+airflow.exceptions.AirflowException: Bash command failed. The command returned a non-zero exit code 1.
+[2026-10-07T00:13:40.869+0000] {taskinstance.py:1226} INFO - Marking task as UP_FOR_RETRY. dag_id=dss150p_pipeline, task_id=validate, run_id=manual__2026-10-07T00:02:45+00:00, execution_date=20261007T000245, start_date=20261007T001340, end_date=20261007T001340
+[2026-10-07T00:13:40.920+0000] {taskinstance.py:341} INFO - ::group::Post task execution logs
+[2026-10-07T00:13:40.920+0000] {standard_task_runner.py:124} ERROR - Failed to execute job 21 for task validate (Bash command failed. The command returned a non-zero exit code 1.; 651)
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/task/task_runner/standard_task_runner.py", line 117, in _start_by_fork
+    ret = args.func(args, dag=self.dag)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/cli/cli_config.py", line 49, in command
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/utils/cli.py", line 116, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/cli/commands/task_command.py", line 483, in task_run
+    task_return_code = _run_task_by_selected_method(args, _dag, ti)
+                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/cli/commands/task_command.py", line 256, in _run_task_by_selected_method
+    return _run_raw_task(args, ti)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/cli/commands/task_command.py", line 341, in _run_raw_task
+    return ti._run_raw_task(
+           ^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/utils/session.py", line 97, in wrapper
+    return func(*args, session=session, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 3006, in _run_raw_task
+    return _run_raw_task(
+           ^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 274, in _run_raw_task
+    TaskInstance._execute_task_with_callbacks(
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 3161, in _execute_task_with_callbacks
+    result = self._execute_task(context, task_orig)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 3185, in _execute_task
+    return _execute_task(self, context, task_orig)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 763, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 734, in _execute_callable
+    return ExecutionCallableRunner(
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/utils/operator_helpers.py", line 252, in run
+    return self.func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/baseoperator.py", line 424, in wrapper
+    return func(self, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/operators/bash.py", line 276, in execute
+    raise AirflowException(
+airflow.exceptions.AirflowException: Bash command failed. The command returned a non-zero exit code 1.
+[2026-10-07T00:13:40.958+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 1
+[2026-10-07T00:13:40.984+0000] {taskinstance.py:3901} INFO - 0 downstream tasks scheduled from follow-on schedule check
+[2026-10-07T00:13:40.988+0000] {local_task_job_runner.py:245} INFO - ::endgroup::
+===== /opt/airflow/logs/dag_id=dss150p_pipeline/run_id=manual__2026-10-07T00:02:45+00:00/task_id=validate/attempt=2.log
+[2026-10-07T00:15:24.805+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-10-07T00:15:24.825+0000] {taskinstance.py:2614} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: dss150p_pipeline.validate manual__2026-10-07T00:02:45+00:00 [queued]>
+[2026-10-07T00:15:24.842+0000] {taskinstance.py:2614} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: dss150p_pipeline.validate manual__2026-10-07T00:02:45+00:00 [queued]>
+[2026-10-07T00:15:24.843+0000] {taskinstance.py:2867} INFO - Starting attempt 2 of 3
+[2026-10-07T00:15:24.856+0000] {taskinstance.py:2890} INFO - Executing <Task(BashOperator): validate> on 2026-10-07 00:02:45+00:00
+[2026-10-07T00:15:24.862+0000] {standard_task_runner.py:72} INFO - Started process 670 to run task
+[2026-10-07T00:15:24.865+0000] {standard_task_runner.py:104} INFO - Running: ['airflow', 'tasks', 'run', 'dss150p_pipeline', 'validate', 'manual__2026-10-07T00:02:45+00:00', '--job-id', '22', '--raw', '--subdir', 'DAGS_FOLDER/dss150p_pipeline.py', '--cfg-path', '/tmp/tmpit8p7uey']
+[2026-10-07T00:15:24.867+0000] {standard_task_runner.py:105} INFO - Job 22: Subtask validate
+[2026-10-07T00:15:24.923+0000] {task_command.py:467} INFO - Running <TaskInstance: dss150p_pipeline.validate manual__2026-10-07T00:02:45+00:00 [running]> on host e5f048433cb5
+[2026-10-07T00:15:25.025+0000] {taskinstance.py:3134} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='group_zeta' AIRFLOW_CTX_DAG_ID='dss150p_pipeline' AIRFLOW_CTX_TASK_ID='validate' AIRFLOW_CTX_EXECUTION_DATE='2026-10-07T00:02:45+00:00' AIRFLOW_CTX_TRY_NUMBER='2' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-10-07T00:02:45+00:00'
+[2026-10-07T00:15:25.026+0000] {taskinstance.py:732} INFO - ::endgroup::
+[2026-10-07T00:15:25.042+0000] {subprocess.py:78} INFO - Tmp dir root location: /tmp
+[2026-10-07T00:15:25.043+0000] {subprocess.py:88} INFO - Running command: ['/usr/bin/bash', '-c', '/opt/pipeline-venv/bin/python -m src.cli validate --year 2023 --month 5']
+[2026-10-07T00:15:25.054+0000] {subprocess.py:99} INFO - Output:
+[2026-10-07T00:15:33.295+0000] {subprocess.py:106} INFO - [PASS] Raw bettergov_hf run 20261006T231240Z: 1 file(s) match manifest.jsonl
+[2026-10-07T00:15:33.296+0000] {subprocess.py:106} INFO - [PASS] Raw bettergov_hf run 20261006T231240Z: stored file hash equals expected_sha256 in config/settings.yml
+[2026-10-07T00:15:33.297+0000] {subprocess.py:106} INFO - [PASS] Raw psa_psgc run 20261006T231240Z: 1 file(s) match manifest.jsonl
+[2026-10-07T00:15:33.297+0000] {subprocess.py:106} INFO - [PASS] Raw psa_psgc run 20261006T231240Z: stored file hash equals expected_sha256 in config/settings.yml
+[2026-10-07T00:15:33.297+0000] {subprocess.py:106} INFO - [PASS] Staging run 20261006T231240Z: quarantine/contracts.parquet matches its recorded SHA-256 and row count (0 rows)
+[2026-10-07T00:15:33.297+0000] {subprocess.py:106} INFO - [PASS] Staging run 20261006T231240Z: staging/contract_contractors.parquet matches its recorded SHA-256 and row count (253273 rows)
+[2026-10-07T00:15:33.297+0000] {subprocess.py:106} INFO - [PASS] Staging run 20261006T231240Z: staging/contracts.parquet matches its recorded SHA-256 and row count (248421 rows)
+[2026-10-07T00:15:33.298+0000] {subprocess.py:106} INFO - [PASS] Reconciliation raw -> staging: raw rows 248421 = staging rows in 248421
+[2026-10-07T00:15:33.298+0000] {subprocess.py:106} INFO - [PASS] Reconciliation staging: staged 248421 + quarantined 0 = rows in 248421
+[2026-10-07T00:15:33.298+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: curated/contract_contractors.parquet matches its recorded SHA-256 and row count (253270 rows)
+[2026-10-07T00:15:33.298+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: curated/dpwh_contracts.parquet matches its recorded SHA-256 and row count (248418 rows)
+[2026-10-07T00:15:33.298+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: curated/psgc_regions.parquet matches its recorded SHA-256 and row count (18 rows)
+[2026-10-07T00:15:33.298+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: quarantine/curated/contract_contractors.parquet matches its recorded SHA-256 and row count (0 rows)
+[2026-10-07T00:15:33.298+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: quarantine/curated/contracts.parquet matches its recorded SHA-256 and row count (3 rows)
+[2026-10-07T00:15:33.298+0000] {subprocess.py:106} INFO - [PASS] Lineage: curated run was built from staging run 20261006T231240Z
+[2026-10-07T00:15:33.298+0000] {subprocess.py:106} INFO - [PASS] Reconciliation staging -> curated: staged rows 248421 = curated rows in 248421
+[2026-10-07T00:15:33.299+0000] {subprocess.py:106} INFO - [PASS] Reconciliation curated: curated 248418 + quarantined 3 = rows in 248421
+[2026-10-07T00:15:33.299+0000] {subprocess.py:106} INFO - [PASS] Invariant: contract_id is present and unique in all 248418 curated rows
+[2026-10-07T00:15:33.299+0000] {subprocess.py:106} INFO - [PASS] Invariant: physical_accomplishment is within 0 to 100 wherever present
+[2026-10-07T00:15:33.299+0000] {subprocess.py:106} INFO - [PASS] Invariant: record_hash recomputed from business columns matches for every row (0 mismatches)
+[2026-10-07T00:15:33.299+0000] {subprocess.py:106} INFO - [PASS] Invariant: award_savings_php = abc_php - award_amount_php
+[2026-10-07T00:15:33.299+0000] {subprocess.py:106} INFO - [PASS] Invariant: award_to_abc_pct = award_amount_php / abc_php * 100
+[2026-10-07T00:15:33.299+0000] {subprocess.py:106} INFO - [PASS] Invariant: is_delayed follows the delay rule as of 2026-01-22 (23769 delayed)
+[2026-10-07T00:15:33.299+0000] {subprocess.py:106} INFO - [PASS] Invariant: region_matches_psgc agrees with region_psgc_code
+[2026-10-07T00:15:33.299+0000] {subprocess.py:106} INFO - [PASS] Partitions: built from the current curated file (curated run 20261006T231240Z)
+[2026-10-07T00:15:33.299+0000] {subprocess.py:106} INFO - [PASS] Partitions: all 125 partition files match _manifest.json
+[2026-10-07T00:15:33.299+0000] {subprocess.py:106} INFO - [PASS] Reconciliation curated -> partitions: 248418 partition rows = 248418 curated rows
+[2026-10-07T00:15:33.300+0000] {subprocess.py:106} INFO - [PASS] Database (partition 2023-5): every loadable curated contract is in curated.dpwh_projects (0 missing of 3002)
+[2026-10-07T00:15:33.300+0000] {subprocess.py:106} INFO - [PASS] Database (partition 2023-5): record_hash in the database matches the curated file (0 differ)
+[2026-10-07T00:15:33.300+0000] {subprocess.py:106} INFO - Result: 29 passed, 0 failed, 0 warnings, 0 skipped
+[2026-10-07T00:15:33.504+0000] {subprocess.py:110} INFO - Command exited with return code 0
+[2026-10-07T00:15:33.537+0000] {taskinstance.py:341} INFO - ::group::Post task execution logs
+[2026-10-07T00:15:33.538+0000] {taskinstance.py:353} INFO - Marking task as SUCCESS. dag_id=dss150p_pipeline, task_id=validate, run_id=manual__2026-10-07T00:02:45+00:00, execution_date=20261007T000245, start_date=20261007T001524, end_date=20261007T001533
+[2026-10-07T00:15:33.576+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-10-07T00:15:33.601+0000] {taskinstance.py:3901} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-10-07T00:15:33.605+0000] {local_task_job_runner.py:245} INFO - ::endgroup::
+===== /opt/airflow/logs/dag_id=dss150p_pipeline/run_id=scheduled__2026-10-05T02:00:00+00:00/task_id=load/attempt=1.log
+[2026-10-07T00:02:48.003+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-10-07T00:02:48.026+0000] {taskinstance.py:2614} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: dss150p_pipeline.load scheduled__2026-10-05T02:00:00+00:00 [queued]>
+[2026-10-07T00:02:48.036+0000] {taskinstance.py:2614} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: dss150p_pipeline.load scheduled__2026-10-05T02:00:00+00:00 [queued]>
+[2026-10-07T00:02:48.036+0000] {taskinstance.py:2867} INFO - Starting attempt 1 of 3
+[2026-10-07T00:02:48.050+0000] {taskinstance.py:2890} INFO - Executing <Task(BashOperator): load> on 2026-10-05 02:00:00+00:00
+[2026-10-07T00:02:48.056+0000] {standard_task_runner.py:72} INFO - Started process 286 to run task
+[2026-10-07T00:02:48.061+0000] {standard_task_runner.py:104} INFO - Running: ['airflow', 'tasks', 'run', 'dss150p_pipeline', 'load', 'scheduled__2026-10-05T02:00:00+00:00', '--job-id', '6', '--raw', '--subdir', 'DAGS_FOLDER/dss150p_pipeline.py', '--cfg-path', '/tmp/tmpdkc_rnqf']
+[2026-10-07T00:02:48.062+0000] {standard_task_runner.py:105} INFO - Job 6: Subtask load
+[2026-10-07T00:02:48.129+0000] {task_command.py:467} INFO - Running <TaskInstance: dss150p_pipeline.load scheduled__2026-10-05T02:00:00+00:00 [running]> on host e5f048433cb5
+[2026-10-07T00:02:48.244+0000] {taskinstance.py:3134} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='group_zeta' AIRFLOW_CTX_DAG_ID='dss150p_pipeline' AIRFLOW_CTX_TASK_ID='load' AIRFLOW_CTX_EXECUTION_DATE='2026-10-05T02:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2026-10-05T02:00:00+00:00'
+[2026-10-07T00:02:48.245+0000] {taskinstance.py:732} INFO - ::endgroup::
+[2026-10-07T00:02:48.260+0000] {subprocess.py:78} INFO - Tmp dir root location: /tmp
+[2026-10-07T00:02:48.260+0000] {subprocess.py:88} INFO - Running command: ['/usr/bin/bash', '-c', '/opt/pipeline-venv/bin/python -m src.cli load']
+[2026-10-07T00:02:48.271+0000] {subprocess.py:99} INFO - Output:
+[2026-10-07T00:02:54.162+0000] {subprocess.py:106} INFO - Loading curated run 20261006T231240Z (248418 contracts, checksum verified)
+[2026-10-07T00:02:54.162+0000] {subprocess.py:106} INFO - Rows read: 248418, loadable: 248418, quarantined: 0
+[2026-10-07T00:02:54.163+0000] {subprocess.py:106} INFO - Load complete into curated.dpwh_projects: inserted=0, updated=0, unchanged=248418
+[2026-10-07T00:02:54.370+0000] {subprocess.py:110} INFO - Command exited with return code 0
+[2026-10-07T00:02:54.408+0000] {taskinstance.py:341} INFO - ::group::Post task execution logs
+[2026-10-07T00:02:54.408+0000] {taskinstance.py:353} INFO - Marking task as SUCCESS. dag_id=dss150p_pipeline, task_id=load, run_id=scheduled__2026-10-05T02:00:00+00:00, execution_date=20261005T020000, start_date=20261007T000248, end_date=20261007T000254
+[2026-10-07T00:02:54.458+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-10-07T00:02:54.489+0000] {taskinstance.py:3901} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-10-07T00:02:54.493+0000] {local_task_job_runner.py:245} INFO - ::endgroup::
+===== /opt/airflow/logs/dag_id=dss150p_pipeline/run_id=scheduled__2026-10-05T02:00:00+00:00/task_id=validate/attempt=1.log
+[2026-10-07T00:02:55.228+0000] {local_task_job_runner.py:123} INFO - ::group::Pre task execution logs
+[2026-10-07T00:02:55.253+0000] {taskinstance.py:2614} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: dss150p_pipeline.validate scheduled__2026-10-05T02:00:00+00:00 [queued]>
+[2026-10-07T00:02:55.262+0000] {taskinstance.py:2614} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: dss150p_pipeline.validate scheduled__2026-10-05T02:00:00+00:00 [queued]>
+[2026-10-07T00:02:55.262+0000] {taskinstance.py:2867} INFO - Starting attempt 1 of 3
+[2026-10-07T00:02:55.290+0000] {taskinstance.py:2890} INFO - Executing <Task(BashOperator): validate> on 2026-10-05 02:00:00+00:00
+[2026-10-07T00:02:55.297+0000] {standard_task_runner.py:72} INFO - Started process 305 to run task
+[2026-10-07T00:02:55.301+0000] {standard_task_runner.py:104} INFO - Running: ['airflow', 'tasks', 'run', 'dss150p_pipeline', 'validate', 'scheduled__2026-10-05T02:00:00+00:00', '--job-id', '7', '--raw', '--subdir', 'DAGS_FOLDER/dss150p_pipeline.py', '--cfg-path', '/tmp/tmpvr3z9he3']
+[2026-10-07T00:02:55.304+0000] {standard_task_runner.py:105} INFO - Job 7: Subtask validate
+[2026-10-07T00:02:55.363+0000] {task_command.py:467} INFO - Running <TaskInstance: dss150p_pipeline.validate scheduled__2026-10-05T02:00:00+00:00 [running]> on host e5f048433cb5
+[2026-10-07T00:02:55.470+0000] {taskinstance.py:3134} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='group_zeta' AIRFLOW_CTX_DAG_ID='dss150p_pipeline' AIRFLOW_CTX_TASK_ID='validate' AIRFLOW_CTX_EXECUTION_DATE='2026-10-05T02:00:00+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='scheduled__2026-10-05T02:00:00+00:00'
+[2026-10-07T00:02:55.472+0000] {taskinstance.py:732} INFO - ::endgroup::
+[2026-10-07T00:02:55.491+0000] {subprocess.py:78} INFO - Tmp dir root location: /tmp
+[2026-10-07T00:02:55.491+0000] {subprocess.py:88} INFO - Running command: ['/usr/bin/bash', '-c', '/opt/pipeline-venv/bin/python -m src.cli validate']
+[2026-10-07T00:02:55.506+0000] {subprocess.py:99} INFO - Output:
+[2026-10-07T00:03:05.360+0000] {subprocess.py:106} INFO - [PASS] Raw bettergov_hf run 20261006T231240Z: 1 file(s) match manifest.jsonl
+[2026-10-07T00:03:05.361+0000] {subprocess.py:106} INFO - [PASS] Raw bettergov_hf run 20261006T231240Z: stored file hash equals expected_sha256 in config/settings.yml
+[2026-10-07T00:03:05.361+0000] {subprocess.py:106} INFO - [PASS] Raw psa_psgc run 20261006T231240Z: 1 file(s) match manifest.jsonl
+[2026-10-07T00:03:05.362+0000] {subprocess.py:106} INFO - [PASS] Raw psa_psgc run 20261006T231240Z: stored file hash equals expected_sha256 in config/settings.yml
+[2026-10-07T00:03:05.362+0000] {subprocess.py:106} INFO - [PASS] Staging run 20261006T231240Z: quarantine/contracts.parquet matches its recorded SHA-256 and row count (0 rows)
+[2026-10-07T00:03:05.362+0000] {subprocess.py:106} INFO - [PASS] Staging run 20261006T231240Z: staging/contract_contractors.parquet matches its recorded SHA-256 and row count (253273 rows)
+[2026-10-07T00:03:05.362+0000] {subprocess.py:106} INFO - [PASS] Staging run 20261006T231240Z: staging/contracts.parquet matches its recorded SHA-256 and row count (248421 rows)
+[2026-10-07T00:03:05.362+0000] {subprocess.py:106} INFO - [PASS] Reconciliation raw -> staging: raw rows 248421 = staging rows in 248421
+[2026-10-07T00:03:05.362+0000] {subprocess.py:106} INFO - [PASS] Reconciliation staging: staged 248421 + quarantined 0 = rows in 248421
+[2026-10-07T00:03:05.363+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: curated/contract_contractors.parquet matches its recorded SHA-256 and row count (253270 rows)
+[2026-10-07T00:03:05.363+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: curated/dpwh_contracts.parquet matches its recorded SHA-256 and row count (248418 rows)
+[2026-10-07T00:03:05.363+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: curated/psgc_regions.parquet matches its recorded SHA-256 and row count (18 rows)
+[2026-10-07T00:03:05.363+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: quarantine/curated/contract_contractors.parquet matches its recorded SHA-256 and row count (0 rows)
+[2026-10-07T00:03:05.364+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: quarantine/curated/contracts.parquet matches its recorded SHA-256 and row count (3 rows)
+[2026-10-07T00:03:05.364+0000] {subprocess.py:106} INFO - [PASS] Lineage: curated run was built from staging run 20261006T231240Z
+[2026-10-07T00:03:05.365+0000] {subprocess.py:106} INFO - [PASS] Reconciliation staging -> curated: staged rows 248421 = curated rows in 248421
+[2026-10-07T00:03:05.365+0000] {subprocess.py:106} INFO - [PASS] Reconciliation curated: curated 248418 + quarantined 3 = rows in 248421
+[2026-10-07T00:03:05.365+0000] {subprocess.py:106} INFO - [PASS] Invariant: contract_id is present and unique in all 248418 curated rows
+[2026-10-07T00:03:05.365+0000] {subprocess.py:106} INFO - [PASS] Invariant: physical_accomplishment is within 0 to 100 wherever present
+[2026-10-07T00:03:05.365+0000] {subprocess.py:106} INFO - [PASS] Invariant: record_hash recomputed from business columns matches for every row (0 mismatches)
+[2026-10-07T00:03:05.365+0000] {subprocess.py:106} INFO - [PASS] Invariant: award_savings_php = abc_php - award_amount_php
+[2026-10-07T00:03:05.365+0000] {subprocess.py:106} INFO - [PASS] Invariant: award_to_abc_pct = award_amount_php / abc_php * 100
+[2026-10-07T00:03:05.366+0000] {subprocess.py:106} INFO - [PASS] Invariant: is_delayed follows the delay rule as of 2026-01-22 (23769 delayed)
+[2026-10-07T00:03:05.366+0000] {subprocess.py:106} INFO - [PASS] Invariant: region_matches_psgc agrees with region_psgc_code
+[2026-10-07T00:03:05.366+0000] {subprocess.py:106} INFO - [PASS] Partitions: built from the current curated file (curated run 20261006T231240Z)
+[2026-10-07T00:03:05.366+0000] {subprocess.py:106} INFO - [PASS] Partitions: all 125 partition files match _manifest.json
+[2026-10-07T00:03:05.366+0000] {subprocess.py:106} INFO - [PASS] Reconciliation curated -> partitions: 248418 partition rows = 248418 curated rows
+[2026-10-07T00:03:05.366+0000] {subprocess.py:106} INFO - [PASS] Database (all contracts): every loadable curated contract is in curated.dpwh_projects (0 missing of 248418)
+[2026-10-07T00:03:05.366+0000] {subprocess.py:106} INFO - [PASS] Database (all contracts): record_hash in the database matches the curated file (0 differ)
+[2026-10-07T00:03:05.367+0000] {subprocess.py:106} INFO - [PASS] Database: no rows outside the current curated run (0 extra)
+[2026-10-07T00:03:05.367+0000] {subprocess.py:106} INFO - Result: 30 passed, 0 failed, 0 warnings, 0 skipped
+[2026-10-07T00:03:05.573+0000] {subprocess.py:110} INFO - Command exited with return code 0
+[2026-10-07T00:03:05.607+0000] {taskinstance.py:341} INFO - ::group::Post task execution logs
+[2026-10-07T00:03:05.608+0000] {taskinstance.py:353} INFO - Marking task as SUCCESS. dag_id=dss150p_pipeline, task_id=validate, run_id=scheduled__2026-10-05T02:00:00+00:00, execution_date=20261005T020000, start_date=20261007T000255, end_date=20261007T000305
+[2026-10-07T00:03:05.682+0000] {local_task_job_runner.py:266} INFO - Task exited with return code 0
+[2026-10-07T00:03:05.711+0000] {taskinstance.py:3901} INFO - 1 downstream tasks scheduled from follow-on schedule check
+[2026-10-07T00:03:05.738+0000] {local_task_job_runner.py:245} INFO - ::endgroup::
