@@ -16,7 +16,6 @@ services:
       AIRFLOW__CORE__LOAD_EXAMPLES: "False"
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_CONTAINER_HOST}:5432/${POSTGRES_DB}
-      AIRFLOW__DATABASE__SQL_ALCHEMY_SCHEMA: airflow
     command: >
       bash -c "airflow db migrate &&
       (airflow users create --username \"$${_AIRFLOW_WWW_USER_USERNAME}\" --password \"$${_AIRFLOW_WWW_USER_PASSWORD}\" --firstname Group --lastname Zeta --role Admin --email zeta@example.invalid || true) &&
