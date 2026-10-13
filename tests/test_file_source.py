@@ -154,7 +154,7 @@ def test_extract_sources_reads_pipeline_run_id_from_environment(tmp_path):
 
 def test_extract_sources_without_configured_sources_fails(tmp_path):
     settings = Settings(raw={}, paths={"raw": tmp_path / "raw"})
-    with pytest.raises(FileSourceError, match="no file sources"):
+    with pytest.raises(FileSourceError, match="no file or API sources"):
         extract_sources(settings=settings, environ={}, log=lambda message: None)
 
 
@@ -191,3 +191,12 @@ def test_project_settings_define_the_psgc_reference():
     assert config["checksum_origin"] == "recorded_at_download"
     assert config["file_url"].startswith("https://psa.gov.ph/")
     assert "PSA" in config["publisher"]
+
+
+def test_project_settings_allow_the_pinned_bettergov_download_only():
+    sources = load_settings().raw["file_sources"]
+    bettergov = sources["bettergov_hf"]
+    assert bettergov["download_allowed"] is True
+    assert f"/resolve/{bettergov['revision']}/" in bettergov["file_url"]
+    assert bettergov["file_url"].endswith(bettergov["path"].split("/")[-1])
+    assert sources["psa_psgc"]["download_allowed"] is False

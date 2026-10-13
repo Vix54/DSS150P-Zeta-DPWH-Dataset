@@ -72,7 +72,7 @@ with DAG(
 
     extract = pipeline_task(
         "extract",
-        f"{PIPELINE} extract-file --source all",
+        f"{PIPELINE} extract-file --source all --download",
         15,
     )
     stage = pipeline_task("stage", f"{PIPELINE} stage", 30)

@@ -173,7 +173,7 @@ def extract_file(args):
 
     try:
         settings = load_settings()
-        extract_sources(settings=settings, sources=None if args.source == "all" else [args.source])
+        extract_sources(settings=settings, sources=None if args.source == "all" else [args.source], download=args.download)
     except (ConfigError, FileSourceError, RawStoreError) as exc:
         print(f"[FAIL] {exc}")
         return 1
@@ -347,12 +347,17 @@ def build_parser():
     extract_parser.set_defaults(handler=extract)
     file_parser = subparsers.add_parser(
         "extract-file",
-        help="Verify a published data file against its recorded SHA-256 and store it unchanged in the raw layer.",
+        help="Verify a published file or API snapshot against its recorded SHA-256 and store it unchanged in the raw layer.",
     )
     file_parser.add_argument(
         "--source",
         default="bettergov_hf",
-        help="Name of the file source in config/settings.yml, or 'all' (default: bettergov_hf).",
+        help="Name of a file or API source in config/settings.yml, or 'all' (default: bettergov_hf).",
+    )
+    file_parser.add_argument(
+        "--download",
+        action="store_true",
+        help="Download file sources that allow it from their pinned URL first (checked against expected_sha256); API sources are always fetched.",
     )
     file_parser.set_defaults(handler=extract_file)
     stage_parser = subparsers.add_parser(

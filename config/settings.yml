@@ -52,7 +52,7 @@ source:
   stats_path: /ai/stats
   fetch_stats: false
   page_limit: 50
-  user_agent_product: GroupZeta-DSS150P-student-project/0.2
+  user_agent_product: GroupZeta-DSS150P-student-project/1.0
 
 file_sources:
   bettergov_hf:
@@ -64,6 +64,7 @@ file_sources:
     revision_date_utc: "2026-01-22T00:40:18Z"
     licence: CC0-1.0
     expected_sha256: 953f0bf99d162c062210219cc5f75c22df85049c24c0dae602c1f4dc976a7c97
+    download_allowed: true
     collection_method: >-
       Collected by the publisher from the DPWH transparency API using a third-party scraper
       (csiiiv/dpwh-transparency-data-api-scraper) built on curl-cffi with browser fingerprint
@@ -78,14 +79,52 @@ file_sources:
     attribution: Philippine Standard Geographic Code (PSGC) as of 30 June 2026, Philippine Statistics Authority, licensed under CC BY 4.0.
     checksum_origin: recorded_at_download
     expected_sha256: 31892bc2bdde3ea0682562d9412b5bab4d45a0be5e5a5b4f6c9d7714b94bca5d
+    download_allowed: false
     collection_method: >-
       Official government publication downloaded manually by a team member from the publisher's
       website in a standard browser. The publisher does not publish checksums, so the SHA-256 was
       recorded at download.
 
+api_sources:
+  psa_openstat_population:
+    publisher: Philippine Statistics Authority (PSA)
+    dataset_url: https://openstat.psa.gov.ph/PXWeb/pxweb/en/DB/DB__1A__PO_2024/0191A6DTHP8.px/
+    api_url: https://openstat.psa.gov.ph/PXWeb/api/v1/en/DB/1A/PO_2024/0191A6DTHP8.px
+    api_documentation_url: https://openstat.psa.gov.ph/API-Documentation
+    terms_url: https://openstat.psa.gov.ph/Terms
+    rate_limit: 10 requests per 10 seconds
+    robots_txt_challenge: documented_api
+    query:
+      - code: Geographic Location
+        selection:
+          filter: all
+          values: ["*"]
+      - code: Parameter
+        selection:
+          filter: item
+          values: ["0"]
+    response_format: json
+    region_dimension: Geographic Location
+    region_match: code
+    file_name: population_by_region.json
+    metadata_file_name: table_metadata.json
+    revision: "Total Population, Household Population, Number of Households and Average Household Size by Region, Province, and Highly Urbanized City: Philippines, 2024 (table 0191A6DTHP8)"
+    licence: CC-BY-4.0
+    attribution: "Source: Philippine Statistics Authority, 2024 Census of Population (POPCEN), OpenSTAT table 0191A6DTHP8, licensed under CC BY 4.0. Regions selected and matched to PSGC codes by Group Zeta."
+    checksum_origin: recorded_at_download
+    expected_sha256: 856c8ecc8f1f5f6163718062eae4d0601fec219d4c48f505a23457e40cd84d36
+    collection_method: >-
+      Retrieved by the Group Zeta pipeline through the publisher's documented PX-Web API with a
+      fixed query (Total Population, every geographic row) in PX-Web JSON format, together with the
+      table's metadata for the labels, identifying itself with the team's contact address and
+      within the published rate limit. The JSON-stat 2.0 output of this table returned a single
+      placeholder value when tested on 14 October 2026, so it is not used. The SHA-256 of the data
+      response is recorded at the first retrieval because the publisher does not publish checksums.
+
 curated:
   primary_source: bettergov_hf
   reference_source: psa_psgc
+  population_source: psa_openstat_population
   psgc_sheet: PSGC
   psgc_code_column: 10-digit PSGC
   psgc_name_column: Name

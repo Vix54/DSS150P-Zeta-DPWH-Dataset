@@ -61,3 +61,4 @@ def test_read_pins_parses_exact_pins_only(tmp_path):
 
 def test_normalize_name_treats_separators_alike():
     assert normalize_name("psycopg2_binary") == normalize_name("psycopg2-binary")
+
