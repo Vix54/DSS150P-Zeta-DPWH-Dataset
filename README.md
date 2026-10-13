@@ -267,7 +267,7 @@ Command output captured from real runs, in `docs/evidence/`:
 | 36 | v1.0.0: `validate` |
 | 37 | v1.0.0: `analyze` with the per-capita view and exploratory classification |
 | 38 | Clean-room rebuild on a second machine |
-| 39 | v1.0.0 DAG run in the Airflow container: automated extract through validate and benchmark |
+| 39 | v1.0.0 DAG run in the Airflow container: automated extract through validate and benchmark (screenshots `airflow_07_v100_grid.png`, `airflow_08_v100_graph.png`) |
 
-`docs/evidence/airflow_diagnostics.md` is historical: it describes an earlier CSV-based DAG with different task names. The current DAG evidence is 30, 31 and 39 and `docs/images/airflow_01` to `airflow_06`.
+`docs/evidence/airflow_diagnostics.md` is historical: it describes an earlier CSV-based DAG with different task names. The current DAG evidence is 30, 31 and 39 and `docs/images/airflow_01` to `airflow_08` (07 and 08 show the v1.0.0 run).
 
