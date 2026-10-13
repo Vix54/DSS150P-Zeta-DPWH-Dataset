@@ -2,11 +2,20 @@
 
 Group Zeta's modular, rerun-safe data pipeline for DPWH infrastructure project data, built to the course's Modular Data Pipeline Specification (Python, PostgreSQL, Parquet, Docker Compose, Apache Airflow).
 
-**Status:** Milestones 1 to 3 implemented: raw ingestion of the primary source and the PSGC reference, staging, curated, hash-guarded PostgreSQL load, partitioning and partition loads, the `validate` contract checker and storage benchmarks. Milestone 4: the Airflow DAG runs in its container, including a controlled failure that recovers on retry (evidence 30 and 31, screenshots in `docs/images/airflow_*.png`).
+**Status:** Milestones 1 to 3 implemented: raw ingestion of three admitted sources, staging, curated, hash-guarded PostgreSQL load, partitioning and partition loads, the `validate` contract checker and storage benchmarks. Milestone 4: the Airflow DAG runs in its container, including a controlled failure that recovers on retry (evidence 30 and 31, screenshots in `docs/images/airflow_*.png`). Release v1.0.0, a corrected release after instructor review, adds automated retrieval of the BetterGov release and the PSA OpenSTAT population source (evidence 32 to 39).
+
+For reviewers: the system architecture is in `docs/architecture.md`, a sample of the final data product with the generated insights, metrics and charts is in `docs/data_product/`, and the evidence index is at the end of this file.
 
 ## Data sources
 
-The pipeline's primary source is the **BetterGov.ph DPWH Infrastructure Transparency Dataset**, a CC0-licensed release of DPWH transparency portal data published on Hugging Face (revision `648ea96`, January 2026, 248,421 contracts). Full provenance, the publisher's stated collection method, and the admission rules for any further source are in `docs/sources.md`.
+| Source | Role | Licence | Retrieval |
+| --- | --- | --- | --- |
+| BetterGov.ph DPWH Infrastructure Transparency Dataset (Hugging Face, revision `648ea96`) | Primary: 248,421 contracts | CC0 1.0 | Automated: `extract-file --download` fetches the pinned revision over HTTPS and checks the published SHA-256 |
+| PSA Philippine Standard Geographic Code, 2Q 2026 | Official reference for regions | CC BY 4.0 | Manual browser download; SHA-256 recorded at download |
+| PSA OpenSTAT, 2024 Census of Population, total population by region (table 0191A6DTHP8) | Official population by region, joined on the PSGC region code for per-capita comparison | CC BY 4.0 | Automated: documented PX-Web API, within the published limit of 10 requests per 10 seconds; SHA-256 recorded at first retrieval |
+| DPWH transparency API | Original source | None published | Not collected: blocked with HTTP 403 |
+
+Full provenance, each publisher's stated collection method, and the admission rules are in `docs/sources.md`.
 
 How the project arrived there:
 
@@ -17,15 +26,19 @@ How the project arrived there:
 
 Data credit: BetterGov.ph, compiled from the DPWH Transparency Portal.
 
-## Raw ingestion of the primary source (Milestone 2)
+## Raw ingestion (Milestone 2, automated in v1.0.0)
 
-Download `dpwh_transparency_data_all_details.parquet` from the dataset page (Files and versions tab) and `PSGC-2Q-2026-Publication-Datafile.xlsx` from the PSA into `data/source/`, then run:
+Download `PSGC-2Q-2026-Publication-Datafile.xlsx` from the PSA into `data/source/` (the PSA site is used through a browser, as the publisher intends), then run:
 
 ```bash
-python -m src.cli extract-file --source all
+python -m src.cli extract-file --source all --download
 ```
 
-`--source bettergov_hf` (the default) or `--source psa_psgc` ingests one source only.
+`--download` fetches the BetterGov file from its pinned revision URL (`/resolve/648ea96.../`) when it is not already in `data/source/`, checks robots.txt, identifies itself with the contact in `.env`, and saves the file only if its SHA-256 equals the value published on the dataset page. Without `--download`, a copy placed in `data/source/` by hand is used. `--source bettergov_hf`, `--source psa_psgc` or `--source psa_openstat_population` ingests one source only.
+
+The OpenSTAT population is fetched through the publisher's documented API on every run: the pipeline sends the fixed query from `config/settings.yml`, reads the table's metadata for the labels, checks that the PX-Web JSON response has exactly one row per selected code and that its SHA-256 equals the value recorded at first retrieval, and stores both unchanged. Regions are matched to the PSGC on their 10-digit codes. The table's JSON-stat 2.0 output is not used: when tested it returned a single placeholder value instead of the 137 rows. If PSA revises the table, the hash no longer matches and the run stops for review instead of silently taking new numbers.
+
+On the first retrieval of an API source no SHA-256 is recorded yet, so the run prints the value and writes nothing. Review the response, record the value as `expected_sha256` for that source in `config/settings.yml`, and run again.
 
 The command checks the file's SHA-256 against the published value recorded in `config/settings.yml`, then copies it byte for byte into `data/raw/source=bettergov_hf/run_id=<UTC timestamp>/` with a `manifest.jsonl` entry and a `run.json` holding the publisher, dataset URL, revision, licence, collection method, and ingestion time. A mismatched checksum stops the run without writing anything. Running the command again with the same file writes nothing and reports the existing run.
 
@@ -91,7 +104,7 @@ python -m src.cli curate
 python -m src.cli curate --rebuild
 ```
 
-Curated reads the latest staging run and the PSGC reference (both checksum verified) and writes `data/curated/run_id=<staging run>/dpwh_contracts.parquet`, the contractor members, a region match table and `curated_report.json`. It flags regions against the PSGC, adds award metrics, `is_delayed`, `processed_at_utc` and a deterministic `record_hash`, and quarantines progress values outside 0 to 100 in `data/quarantine/curated/`. Reading the PSGC workbook needs `openpyxl` (pinned in `requirements.txt`). Rules are in `docs/data_contract.md`.
+Curated reads the latest staging run, the PSGC reference, and the OpenSTAT population (all checksum verified) and writes `data/curated/run_id=<staging run>/dpwh_contracts.parquet`, the contractor members, a region match table, `region_population.parquet` (population per PSGC region) and `curated_report.json`. The population is a separate table, so the contracts and their `record_hash` values do not change. It flags regions against the PSGC, adds award metrics, `is_delayed`, `processed_at_utc` and a deterministic `record_hash`, and quarantines progress values outside 0 to 100 in `data/quarantine/curated/`. Reading the PSGC workbook needs `openpyxl` (pinned in `requirements.txt`). Rules are in `docs/data_contract.md`.
 
 ## Database load (Milestone 2)
 
@@ -141,13 +154,15 @@ Writes the curated contracts as CSV, JSON Lines, Parquet (Snappy), Parquet (Zsta
 python -m src.cli analyze
 ```
 
-Descriptive statistics, four charts and a delay model on the curated contracts, written to `data/analytics/` (`insights.md`, `analytics_metrics.json`, PNG charts). Every sentence in `insights.md` is generated from the computed numbers. The model only uses On-Going contracts and excludes the columns that define the delay flag (progress, status and the contract dates).
+Descriptive statistics, five charts, a per-capita view and an exploratory delay classification on the curated contracts, written to `data/analytics/` (`insights.md`, `analytics_metrics.json`, PNG charts). Every sentence in `insights.md` is generated from the computed numbers. The per-capita view divides contracts and delayed contracts by each region's population from OpenSTAT.
+
+The classifier (scikit-learn `HistGradientBoostingClassifier`) only uses On-Going contracts and excludes the columns that define the delay flag (progress, status and the contract dates). It is exploratory classification within one snapshot of the source (delay rule as of 2026-01-22): it shows which recorded attributes separate delayed from on-schedule contracts in that snapshot. It is not a forecast of future delays and does not establish causes; that would need dated snapshots and time-based validation.
 
 ## Full run
 
 ```bash
 python -m src.cli validate-env --check-db
-python -m src.cli extract-file --source all
+python -m src.cli extract-file --source all --download
 python -m src.cli stage
 python -m src.cli curate
 python -m src.cli partition
@@ -181,13 +196,13 @@ The UI is at `http://localhost:<AIRFLOW_HOST_PORT>` (default 8080; set another p
 | `.env.example` | Template for environment-specific values (copy to `.env`, never commit) |
 | `src/cli.py` | Unified command line entry point |
 | `src/config.py` | Settings and environment loading |
-| `src/extract` | Raw acquisition (file sources, blocked API extractor) |
-| `src/transform` | Staging, curated, partitioning |
+| `src/extract` | Raw acquisition (file sources with pinned downloads, the OpenSTAT API source, the blocked DPWH API extractor) |
+| `src/transform` | Staging, curated, region population (PX-Web JSON, JSON-stat), partitioning |
 | `src/load` | PostgreSQL connection, hash-guarded upsert, partition loads and audit |
 | `src/validate` | Contract and integrity checks (`validate`) |
 | `src/benchmark` | Storage format benchmarks |
 | `src/analytics` | Supplementary descriptive analysis and delay model |
-| `docs/` | Source register, source contract, data contract, data dictionary, lineage, ERD, architecture review (Section 8 answers), evidence |
+| `docs/` | Source register, source contract, data contract, data dictionary, lineage, ERD, system architecture, architecture review (Section 8 answers), data product sample, evidence |
 | `dags/` | Airflow DAG |
 | `Dockerfile.airflow`, `docker-compose.airflow.yml` | Airflow container |
 | `sql/init/` | Database initialisation scripts |
@@ -228,3 +243,31 @@ The database tests in `tests/test_downstream.py` drop and recreate the `curated`
 - Commit messages: `Lastname - Action - module - short description`, for example `Risma - Fix - extract - recreated code structure`.
 - Work happens on short-lived branches; `main` stays clean.
 - Milestone breakthroughs are marked with semantic tags (`v0.1.0`, `v0.2.0`, ...).
+
+## Evidence
+
+Command output captured from real runs, in `docs/evidence/`:
+
+| Files | What they show |
+| --- | --- |
+| 01-03, 20-21, 29 | Environment checks (local and Docker) and test runs |
+| 04-06, 12-14 | Raw ingestion: first run, unchanged rerun, published-hash match, PSGC hash recorded at download |
+| 07 | Raw profiling |
+| 08 | DPWH API runs blocked with HTTP 403 |
+| 09-11, 15-19 | Staging and curated: tests, first runs, unchanged reruns, delay-rule fix |
+| 22-23 | Clean-room full run; second load with 0 inserted, 0 updated |
+| 24-25 | `validate` (30 passed) and a partition load with its audit row |
+| 26-27 | Storage benchmark and analytics |
+| 28 | Tamper test and recovery |
+| 30-31 | Airflow DAG runs and task logs, including the controlled failure and retry |
+| 32 | v1.0.0: `extract-file --source all --download` with the local BetterGov copy removed: the pipeline downloads the pinned file and checks the published SHA-256; PSGC and OpenSTAT match their recorded values |
+| 33 | v1.0.0: unchanged rerun of every source |
+| 34 | v1.0.0: stage, curate (with the population table) and partition |
+| 35 | v1.0.0: load and a second load with 0 inserted, 0 updated |
+| 36 | v1.0.0: `validate` |
+| 37 | v1.0.0: `analyze` with the per-capita view and exploratory classification |
+| 38 | Clean-room rebuild on a second machine |
+| 39 | v1.0.0 DAG run in the Airflow container: automated extract through validate and benchmark |
+
+`docs/evidence/airflow_diagnostics.md` is historical: it describes an earlier CSV-based DAG with different task names. The current DAG evidence is 30, 31 and 39 and `docs/images/airflow_01` to `airflow_06`.
+

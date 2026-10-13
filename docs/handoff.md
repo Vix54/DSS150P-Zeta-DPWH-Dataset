@@ -1,8 +1,8 @@
 # Project Handoff Documentation
 
 **Project:** DPWH Infrastructure Data Pipeline (Group Zeta)  
-**Status:** Pipeline Implementation, Validation and Airflow Containerized Execution Complete  
-**Accompanying Specifications:** `docs/sources.md`, `docs/data_contract.md`, `docs/architecture_review.md`
+**Status:** Release v1.0.0, a corrected release after instructor review: automated source retrieval, three admitted sources, architecture diagram and a reviewable data product  
+**Accompanying Specifications:** `docs/sources.md`, `docs/data_contract.md`, `docs/architecture.md`, `docs/architecture_review.md`, `docs/data_product/`
 
 ---
 
@@ -16,7 +16,8 @@
 | `main` (`v0.3.0`) | Staging and Curated Layers: Processing the primary BetterGov asset, PSGC geographic validation, quarantine routing, metrics calculation, and `record_hash` generation. |
 | `main` (`v0.4.0`) | Relational Loading and Optimization: Idempotent PostgreSQL upsert, temporal partitioning, partition-level loads, `validate` suite, storage benchmarks, descriptive analytics, and containerized Airflow DAG infrastructure (`docs/evidence/20`–`29`). |
 | `main` (`v0.4.2`) | Airflow 2.10.5 runs in its container: full runs and a controlled-failure run that recovers on retry (`docs/evidence/30`–`31`, `docs/images/airflow_*.png`). |
-| **Test Suite** | 105 passed tests, 1 expected database test skipped when scratch environment is unconfigured (`pytest -q`). |
+| `main` (`v1.0.0`) | Corrected release after instructor review: automated download of the pinned BetterGov revision, the PSA OpenSTAT population API, a robots.txt challenge policy limited to documented APIs, a per-capita view, exploratory framing of the delay model, the architecture diagram (`docs/architecture.md`), the reviewer data product (`docs/data_product/`) and a corrected technical report (`docs/evidence/32`–`39`). |
+| **Test Suite** | All tests pass (`pytest -q`); the database test is skipped unless a scratch database is configured. |
 
 ---
 
@@ -33,20 +34,30 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-Populate all configuration placeholders within `.env` (ensuring valid contact details for `SCRAPER_CONTACT`; `.env` must remain untracked by Git). Retrieve the primary raw dataset `dpwh_transparency_data_all_details.parquet` from the Hugging Face repository (`bettergovph/dpwh-transparency-data`, commit `648ea96`) into `data/source/`, and trigger ingestion:
+Populate all configuration placeholders within `.env`, including a valid contact address for `SCRAPER_CONTACT`. `.env` must remain untracked by Git. Download `PSGC-2Q-2026-Publication-Datafile.xlsx` from the PSA in a browser into `data/source/`, then trigger ingestion:
 
 ```bash
 python -m src.cli validate-env
-python -m src.cli extract-file
+python -m src.cli extract-file --source all --download
 ```
 
-The `extract-file` command validates the payload SHA-256 against the reference digest (`953f0bf9…a7c97`), persisting the file byte-for-byte into `data/raw/source=bettergov_hf/run_id=<UTC timestamp>/` accompanied by `manifest.jsonl` and `run.json`. Re-executing against an unchanged source file exits with no changes written.
+`--download` retrieves the primary dataset `dpwh_transparency_data_all_details.parquet` from its pinned Hugging Face revision (`bettergovph/dpwh-transparency-data`, commit `648ea96`) when it is not already in `data/source/`, and saves it only if its SHA-256 equals the published digest (`953f0bf9…a7c97`). The same command queries the OpenSTAT API and stores the response only if its SHA-256 equals the value recorded at first retrieval in `config/settings.yml`. Every source is persisted byte-for-byte into `data/raw/source=<name>/run_id=<UTC timestamp>/` accompanied by `manifest.jsonl` and `run.json`. Re-executing against unchanged sources exits with no changes written.
 
 ---
 
 ## 3. Admitted Raw Data Sources and Invariants
 
-The data pipeline admits two upstream data assets. The authoritative reference standard is the Philippine Statistics Authority (PSA) Philippine Standard Geographic Code (PSGC) as of 30 June 2026, licensed under CC BY 4.0. This asset is staged via:
+The data pipeline admits three upstream data assets.
+
+| Source | Role | Retrieval |
+| :--- | :--- | :--- |
+| BetterGov.ph DPWH release, revision `648ea96` (CC0 1.0) | Primary contract records | Automated pinned download, published SHA-256 |
+| PSA PSGC, 2Q 2026 (CC BY 4.0) | Official region reference | Manual browser download, SHA-256 recorded at download |
+| PSA OpenSTAT, 2024 Census of Population, total population by region (table 0191A6DTHP8) (CC BY 4.0) | Population per region for per-capita views | Automated through the documented PX-Web API |
+
+OpenSTAT serves its robots.txt behind a bot-protection challenge. Because the PSA documents the API for programs, the source is configured with `robots_txt_challenge: documented_api`: the challenge on robots.txt is logged, only the documented endpoint is called within the published limit of 10 requests per 10 seconds, and a challenge on the API itself still stops the run.
+
+The authoritative reference standard is the Philippine Statistics Authority (PSA) Philippine Standard Geographic Code (PSGC) as of 30 June 2026, licensed under CC BY 4.0. This asset is staged via:
 ```bash
 python -m src.cli extract-file --source psa_psgc
 ```
@@ -162,6 +173,8 @@ Storage and Query Benchmarks (Median of 5 runs; 248,418 rows $\times$ 43 columns
 | :--- | :--- |
 | **Secondary Validation** | Reconcile curated status totals against `docs/reconciliation_baseline.md`. Perform browser-based manual spot-checks on 30 randomly sampled contracts (`random_state=42`). Profile nested structures (`components`, `bidders`, `coordinates`) and investigate the remaining 40 winner-name edge cases. |
 | **Supplemental Data Ingestion** | Ingest verified secondary datasets strictly to corroborate existing entities; secondary sources must never overwrite primary records. Admission of PhilGEPS Open Data is pending confirmation of its download availability and terms. |
+| **Source Revisions** | When OpenSTAT revises its table, `extract-file` stops with the new SHA-256. Review the change, record the new value in `config/settings.yml`, rerun and recapture the affected evidence. |
+| **Stale Evidence** | `docs/evidence/airflow_diagnostics.md` describes a superseded Airflow setup and is kept only as history; current Airflow evidence is `docs/evidence/30`–`31`. |
 
 ---
 

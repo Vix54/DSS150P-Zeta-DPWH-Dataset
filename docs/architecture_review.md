@@ -1,7 +1,7 @@
 # Technical Architecture Review
 
 **Project:** Group Zeta DPWH Infrastructure Pipeline  
-**Scope:** Evaluation of the architectural criteria set forth in Section 8 of the Modular Data Pipeline Specification, benchmarked against pipeline tag `v0.4.0` and real-data executions recorded in `docs/evidence/20`–`31`.
+**Scope:** Evaluation of the architectural criteria set forth in Section 8 of the Modular Data Pipeline Specification, benchmarked against pipeline tag `v0.4.0` and real-data executions recorded in `docs/evidence/20`–`31`, and updated for release `v1.0.0` (automated retrieval and two API sources, `docs/evidence/32`–`39`). The deployed architecture is drawn in `docs/architecture.md`.
 
 ---
 
@@ -25,13 +25,15 @@ inserted=0, updated=0, unchanged=248418
 
 **Inclusion of Version Markers:** The specification includes `source_updated_at` so that a newer version of a record is recognized as a change even when its other attributes look identical. Considering that the upstream DPWH data asset lacks row-level update timestamps, the pipeline substitutes `source_revision` (the immutable Hugging Face commit hash). Consequently, a trade-off is deliberately accepted: the ingestion of an updated upstream release triggers a single hash invalidation across all records, executing a complete state refresh that explicitly binds every record to its authoritative upstream commit.
 
+**Supplementary Tables:** The population (v1.0.0) is written as a separate curated table keyed by PSGC region code rather than as contract columns. Hence, a revision of that source changes only its own table and never invalidates the contract hashes.
+
 ---
 
 ## 2. Raw Immutability and Downstream Resilience
 
 **Context:** Evaluation of systemic risks associated with purging or mutating raw data layers post-transformation, regardless of curated layer compliance.
 
-**Enforcement Protocol:** Ingestion routines within `extract-file` mirror source files byte-for-byte into isolated directories structured as `data/raw/source=<name>/run_id=<id>/`. The ingestion logic explicitly rejects overwrite attempts on existing target artifacts and records the resulting SHA-256 digest in `manifest.jsonl`. Crucially, incoming payloads must reconcile with the publisher's stated cryptographic digest (BetterGov) or the download registration hash (PSGC) prior to persistence. All downstream transformation steps mandate manifest verification prior to initiating read operations.
+**Enforcement Protocol:** Ingestion routines within `extract-file` mirror source files byte-for-byte into isolated directories structured as `data/raw/source=<name>/run_id=<id>/`. The ingestion logic explicitly rejects overwrite attempts on existing target artifacts and records the resulting SHA-256 digest in `manifest.jsonl`. Crucially, incoming payloads must reconcile with the publisher's stated cryptographic digest (BetterGov) or the hash recorded at download or first retrieval (PSGC, OpenSTAT) prior to persistence. Since v1.0.0 the BetterGov file is downloaded by the pipeline itself from its pinned revision URL, through a temporary `.part` file that is kept only if the digest matches. All downstream transformation steps mandate manifest verification prior to initiating read operations.
 
 **Observed and Mitigated Risk Scenarios:**
 * **Downstream Rule Evolution:** During initial staging, 9 records were quarantined due to the appearance of an undocumented alternative date format. Because raw inputs remained pristine and immutable, the parser rule was corrected and staging re-executed from the untouched raw copy. Staging quarantine counts dropped to 0, while 632 placeholder dates were successfully identified. Had the raw data been overwritten, the original textual strings would have been lost.
@@ -105,7 +107,7 @@ Notably, PostgreSQL exhibited the highest write time and a footprint larger than
 **Mitigated Systemic Hazards:**
 * **DAG Parser Collapse:** Airflow dynamically evaluates DAG files at regular intervals. Encapsulating domain logic or complex dependencies within DAG scripts causes parse-time failures, dropping the entire workflow from the UI. An earlier iteration of the team's DAG referenced a task variable and an import that did not exist; the file failed to parse, disabling pipeline visualization and monitoring.
 * **Dependency Isolation:** Airflow 2.10.5 pins internal constraints (SQLAlchemy 1.4.54, pandas 2.1.4), whereas the pipeline codebase requires modern data libraries (SQLAlchemy 2.1.1, pandas 3.0.6). CLI execution decouples the runtime environment, allowing the pipeline to execute in an isolated virtual environment inside the Airflow container (`/opt/pipeline-venv`); the container's task logs show every task running `/opt/pipeline-venv/bin/python -m src.cli <command>` (*Reference: `docs/evidence/31`*).
-* **Testability Beyond Orchestration:** Embedding transformations within DAG files restricts testing strictly to the scheduler harness. Delegating processing to the CLI allows 105 automated tests to validate operations locally without Airflow, and the same commands run unchanged by hand, in the pipeline container, or under Airflow.
+* **Testability Beyond Orchestration:** Embedding transformations within DAG files restricts testing strictly to the scheduler harness. Delegating processing to the CLI allows the automated test suite to validate operations locally without Airflow, and the same commands run unchanged by hand, in the pipeline container, or under Airflow.
 * **Parse-Time Resource Bottlenecks:** Heavy module imports and data reads at the top level of DAG files execute on every scheduler parsing loop, degrading scheduler responsiveness.
 * **Implementation Divergence:** Separate DAG implementations risk logic drift between ad-hoc local executions and production schedules. Single-entry CLI wrappers ensure execution symmetry across all runtime environments.
 
@@ -161,6 +163,8 @@ This produces 125 partitions across the 248,418 contracts, averaging roughly 2,0
 6. Byte-for-byte page persistence with independent manifest entries.
 
 Unlike static batches, API pagination introduces non-atomic snapshots: state drift can occur between page 1 and page 5,000. Hence, extraction runs require static run boundaries and baseline reconciliation checks against the portal's public summary endpoint (`/ai/stats`).
+
+**Implemented in v1.0.0:** A documented API now feeds the pipeline under the same rules as the files. OpenSTAT is a metadata GET and a single POST with a fixed PX-Web query, and the reply must contain exactly one row per selected code (this check caught the table's JSON-stat 2.0 output returning a single placeholder value). A revised response no longer matches its recorded hash, so the run stops for review rather than silently absorbing new figures. OpenSTAT serves robots.txt behind a bot-protection challenge; the pipeline treats that as a documented exception only for sources whose publisher documents the API for programs (`robots_txt_challenge: documented_api`), and still stops on any challenge from the API itself.
 
 **Incremental State Hydration:** Implementing differential record capture requires upstream watermarking (e.g., `updated_at`). Because the DPWH portal lacks row-level modification timestamps, complete batch ingestion reconciled via `record_hash` remains the only robust pattern. Were a reliable watermark introduced, the staging layer would filter for the latest state per business key, while the downstream `record_hash` guard would preserve row-level update idempotency.
 

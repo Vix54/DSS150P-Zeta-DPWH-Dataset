@@ -195,3 +195,17 @@ The source does not explain these codes. Do not guess their meaning in downstrea
 - Inner fields of `components`, `bidders` and `coordinates`
 - Whether any contractor ID starts with a zero
 - Whether every `contractId` matches `^\d{2}[A-Z0-9]{2}\d{4}$`
+
+## 8. Curated table `region_population.parquet` (v1.0.0)
+
+Built by `curate` from the PSA OpenSTAT population source and the PSGC regions. One row per PSGC region that the population data matches.
+
+| Column | Type | Description |
+| --- | --- | --- |
+| `psgc_code` | string | 10-digit PSGC code of the region; the join key to `region_psgc_code` in the curated contracts |
+| `psgc_name` | string | Region name as written in the PSGC |
+| `source_label` | string | Region label as published in OpenSTAT, kept for traceability |
+| `population` | Int64 | Population of the region for the selected census period |
+| `period` | string | The selected values of the table's other dimensions, for example the census year |
+
+Regions in the PSGC without a population value are listed in `curated_report.json` (`psgc_regions_without_population`) and reported by `validate` as a warning.
