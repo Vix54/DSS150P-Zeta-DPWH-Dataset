@@ -1,0 +1,9 @@
+Already present: dpwh_transparency_data_all_details.parquet matches the expected SHA-256; no download needed
+Checksum matches the value published by the source: 953f0bf99d162c062210219cc5f75c22df85049c24c0dae602c1f4dc976a7c97
+Unchanged: this exact file is already stored and verified in run 20261006T231240Z; nothing written
+Already present: PSGC-2Q-2026-Publication-Datafile.xlsx matches the expected SHA-256; no download needed
+Checksum matches the value recorded when the file was downloaded: 31892bc2bdde3ea0682562d9412b5bab4d45a0be5e5a5b4f6c9d7714b94bca5d
+Unchanged: this exact file is already stored and verified in run 20261006T231240Z; nothing written
+Requesting psa_openstat_population from https://openstat.psa.gov.ph/PXWeb/api/v1/en/DB/1A/PO_2024/0191A6DTHP8.px (json)
+Checksum matches the value recorded when the file was downloaded: 856c8ecc8f1f5f6163718062eae4d0601fec219d4c48f505a23457e40cd84d36
+Unchanged: this exact response is already stored and verified in run 20261013T181909Z; nothing written

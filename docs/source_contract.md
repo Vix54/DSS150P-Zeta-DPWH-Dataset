@@ -1,11 +1,11 @@
 # Source Contract: DPWH Infrastructure Transparency Dataset
 
 **Project:** DSS150P Zeta – DPWH Modular Data Pipeline
-**Version:** 0.3
-**Date:** 2026-10-07
+**Version:** 1.0
+**Date:** 2026-10-13
 **Companion documents:** `docs/data_dictionary.md` (what each column is), `docs/data_contract.md` (staged and curated column names), `docs/sources.md` (source register)
 **Measured on:** `dpwh_transparency_data_all_details.parquet`, 248,421 rows, 52 columns
-**Evidence:** `docs/evidence/07_raw_profiling.txt`, `docs/evidence/10_stage_first_run.txt` and the curated runs (`main`, tag `v0.3.0`)
+**Evidence:** `docs/evidence/07_raw_profiling.txt`, `docs/evidence/10_stage_first_run.txt`, the curated runs (`main`, tag `v0.3.0`) and the v1.0.0 runs (`docs/evidence/32`–`39`)
 
 This contract says what the pipeline expects from the source and what it does when the source breaks that expectation. It does not describe individual columns; see the data dictionary for that. Every rule and code below is the one the pipeline on `main` applies, unless it is marked **Planned**.
 
@@ -53,6 +53,20 @@ The earlier drafts were written from the dataset card, which describes the small
 | Raw lane | `source=psa_psgc` |
 | Purpose | Official reference for checking `region`. It only flags; it never overwrites primary values |
 
+### Supplementary source (v1.0.0)
+
+| Item | PSA OpenSTAT population |
+| --- | --- |
+| Dataset | 2024 Census of Population, total population by region (table `0191A6DTHP8`) |
+| Retrieval | Automated: a metadata GET and a POST to the documented PX-Web API with the fixed query in `config/settings.yml`, response in PX-Web JSON |
+| Licence | CC BY 4.0 |
+| SHA-256 | Recorded at first retrieval, over the data response |
+| Raw lane | `source=psa_openstat_population` (`population_by_region.json`, `table_metadata.json`) |
+| Curated output | `region_population.parquet` |
+| Purpose | Per-capita comparison of contracts and delays by PSGC region |
+
+It adds a separate table keyed by PSGC region code and never changes a contract row or its `record_hash`.
+
 ## 3. Grain and keys
 
 | Item | Rule |
@@ -81,6 +95,10 @@ Only structurally unusable rows are quarantined ("Traceable Rejections", spec Se
 | S2 | All 52 columns present, none missing and none unexpected | Stop | `stage` |
 | S3 | Staged rows plus quarantined rows equal input rows | Stop | `stage`, `curate` |
 | S4 | Staging files match the checksums in the staging report before curation reads them | Stop | `curate` |
+| S5 | A downloaded file is saved only if its SHA-256 matches; an API response with no recorded SHA-256 prints the value for review and writes nothing | Stop | `extract-file --download` |
+| S6 | robots.txt allows the request; a bot-protection challenge stops the run, except a challenge on robots.txt itself for a source marked `robots_txt_challenge: documented_api` | Stop | `extract-file` |
+| S7 | The OpenSTAT response is valid PX-Web JSON with exactly one row per selected code, every code is in the table metadata, one value of every dimension except the region dimension is selected, and no two rows match the same PSGC region | Stop | `extract-file`, `curate` |
+| S8 | Every PSGC region has a population value | Warn | `validate` |
 
 The row count (248,421) is not checked separately: for this file version it is fixed by the hash in S1.
 
@@ -181,7 +199,8 @@ The row count (248,421) is not checked separately: for this file version it is f
 
 | Item | Rule |
 | --- | --- |
-| Update frequency | None promised. The release is a fixed snapshot (revision `648ea96`) |
+| Update frequency | None promised. The release is a fixed snapshot (revision `648ea96`). OpenSTAT can revise its table at any time |
+| Revisions of API sources | A changed OpenSTAT response no longer matches its recorded SHA-256, so `extract-file` stops and writes nothing until the team reviews the change and records the new value |
 | Reruns | A second `extract-file` with the same file writes nothing and reports the existing run. Staging and curated rebuilds give the same `record_hash` for the same input |
 | New revision | Treated as a new source version: record its SHA-256, re-profile, and update this contract's version and observed counts |
 
@@ -204,3 +223,4 @@ The row count (248,421) is not checked separately: for this file version it is f
 | 0.1 | 2026-10-06 | First draft from the dataset card, README and preview rows |
 | 0.2 | 2026-10-06 | Rebuilt on the real 52-column file; rules, codes and severities aligned with the pipeline on `main`; unenforced rules moved to "Planned"; Appendix A removed (profiling is in `docs/evidence/07` and `10`) |
 | 0.3 | 2026-10-07 | R12: negative `project_cost` quarantined at load (`Q_LOAD_NEGATIVE_PROJECT_COST`); null `project_cost` allowed in the database |
+| 1.0 | 2026-10-13 | Release v1.0.0: automated pinned download of the primary file (S5), robots.txt challenge policy (S6), the OpenSTAT supplementary source with its run-level rules (S7, S8) |

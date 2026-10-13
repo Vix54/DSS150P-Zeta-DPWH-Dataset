@@ -1,0 +1,74 @@
+# v1.0.0 DAG run v100__20261013T200126Z in the Airflow container
+
+dag_id           | run_id                               | state   | execution_date            | start_date                       | end_date                        
+=================+======================================+=========+===========================+==================================+=================================
+dss150p_pipeline | v100__20261013T200126Z               | success | 2026-10-13T20:01:39+00:00 | 2026-10-13T20:06:50.948173+00:00 | 2026-10-13T20:12:11.618683+00:00
+dss150p_pipeline | scheduled__2026-10-12T02:00:00+00:00 | success | 2026-10-12T02:00:00+00:00 | 2026-10-13T20:01:42.428985+00:00 | 2026-10-13T20:06:49.886435+00:00
+dss150p_pipeline | scheduled__2026-10-11T02:00:00+00:00 | success | 2026-10-11T02:00:00+00:00 | 2026-10-12T02:00:00.691928+00:00 | 2026-10-12T02:05:47.539331+00:00
+dss150p_pipeline | scheduled__2026-10-10T02:00:00+00:00 | success | 2026-10-10T02:00:00+00:00 | 2026-10-11T02:00:00.526812+00:00 | 2026-10-11T02:05:41.544214+00:00
+dss150p_pipeline | scheduled__2026-10-09T02:00:00+00:00 | success | 2026-10-09T02:00:00+00:00 | 2026-10-10T02:00:00.787221+00:00 | 2026-10-10T02:05:56.985812+00:00
+dss150p_pipeline | scheduled__2026-10-08T02:00:00+00:00 | success | 2026-10-08T02:00:00+00:00 | 2026-10-09T02:00:00.423841+00:00 | 2026-10-09T02:06:31.910402+00:00
+
+dag_id           | execution_date            | task_id   | state   | start_date                       | end_date                        
+=================+===========================+===========+=========+==================================+=================================
+dss150p_pipeline | 2026-10-13T20:01:39+00:00 | stage     | success | 2026-10-13T20:06:58.309599+00:00 | 2026-10-13T20:06:59.281750+00:00
+dss150p_pipeline | 2026-10-13T20:01:39+00:00 | extract   | success | 2026-10-13T20:06:52.693019+00:00 | 2026-10-13T20:06:57.706869+00:00
+dss150p_pipeline | 2026-10-13T20:01:39+00:00 | curate    | success | 2026-10-13T20:07:00.060021+00:00 | 2026-10-13T20:07:00.970983+00:00
+dss150p_pipeline | 2026-10-13T20:01:39+00:00 | partition | success | 2026-10-13T20:07:02.259769+00:00 | 2026-10-13T20:07:03.528450+00:00
+dss150p_pipeline | 2026-10-13T20:01:39+00:00 | load      | success | 2026-10-13T20:07:04.470961+00:00 | 2026-10-13T20:07:10.418655+00:00
+dss150p_pipeline | 2026-10-13T20:01:39+00:00 | validate  | success | 2026-10-13T20:07:11.638195+00:00 | 2026-10-13T20:07:21.081648+00:00
+dss150p_pipeline | 2026-10-13T20:01:39+00:00 | benchmark | success | 2026-10-13T20:07:21.641200+00:00 | 2026-10-13T20:12:10.888351+00:00
+                                                                                                                                        
+
+===== task_id=extract/attempt=1.log
+[2026-10-13T20:06:52.956+0000] {subprocess.py:88} INFO - Running command: ['/usr/bin/bash', '-c', '/opt/pipeline-venv/bin/python -m src.cli extract-file --source all --download']
+[2026-10-13T20:06:57.496+0000] {subprocess.py:106} INFO - Already present: dpwh_transparency_data_all_details.parquet matches the expected SHA-256; no download needed
+[2026-10-13T20:06:57.496+0000] {subprocess.py:106} INFO - Checksum matches the value published by the source: 953f0bf99d162c062210219cc5f75c22df85049c24c0dae602c1f4dc976a7c97
+[2026-10-13T20:06:57.496+0000] {subprocess.py:106} INFO - Unchanged: this exact file is already stored and verified in run 20261006T231240Z; nothing written
+[2026-10-13T20:06:57.496+0000] {subprocess.py:106} INFO - Already present: PSGC-2Q-2026-Publication-Datafile.xlsx matches the expected SHA-256; no download needed
+[2026-10-13T20:06:57.496+0000] {subprocess.py:106} INFO - Checksum matches the value recorded when the file was downloaded: 31892bc2bdde3ea0682562d9412b5bab4d45a0be5e5a5b4f6c9d7714b94bca5d
+[2026-10-13T20:06:57.496+0000] {subprocess.py:106} INFO - Unchanged: this exact file is already stored and verified in run 20261006T231240Z; nothing written
+[2026-10-13T20:06:57.496+0000] {subprocess.py:106} INFO - Requesting psa_openstat_population from https://openstat.psa.gov.ph/PXWeb/api/v1/en/DB/1A/PO_2024/0191A6DTHP8.px (json)
+[2026-10-13T20:06:57.496+0000] {subprocess.py:106} INFO - Checksum matches the value recorded when the file was downloaded: 856c8ecc8f1f5f6163718062eae4d0601fec219d4c48f505a23457e40cd84d36
+[2026-10-13T20:06:57.497+0000] {subprocess.py:106} INFO - Unchanged: this exact response is already stored and verified in run 20261013T181909Z; nothing written
+[2026-10-13T20:06:57.706+0000] {taskinstance.py:353} INFO - Marking task as SUCCESS. dag_id=dss150p_pipeline, task_id=extract, run_id=v100__20261013T200126Z, execution_date=20261013T200139, start_date=20261013T200652, end_date=20261013T200657
+
+===== task_id=validate/attempt=1.log
+[2026-10-13T20:07:11.869+0000] {subprocess.py:88} INFO - Running command: ['/usr/bin/bash', '-c', '/opt/pipeline-venv/bin/python -m src.cli validate']
+[2026-10-13T20:07:20.846+0000] {subprocess.py:106} INFO - [PASS] Raw bettergov_hf run 20261006T231240Z: 1 file(s) match manifest.jsonl
+[2026-10-13T20:07:20.847+0000] {subprocess.py:106} INFO - [PASS] Raw bettergov_hf run 20261006T231240Z: stored file hash equals expected_sha256 in config/settings.yml
+[2026-10-13T20:07:20.847+0000] {subprocess.py:106} INFO - [PASS] Raw psa_openstat_population run 20261013T181909Z: 2 file(s) match manifest.jsonl
+[2026-10-13T20:07:20.847+0000] {subprocess.py:106} INFO - [PASS] Raw psa_openstat_population run 20261013T181909Z: stored file hash equals expected_sha256 in config/settings.yml
+[2026-10-13T20:07:20.847+0000] {subprocess.py:106} INFO - [PASS] Raw psa_psgc run 20261006T231240Z: 1 file(s) match manifest.jsonl
+[2026-10-13T20:07:20.847+0000] {subprocess.py:106} INFO - [PASS] Raw psa_psgc run 20261006T231240Z: stored file hash equals expected_sha256 in config/settings.yml
+[2026-10-13T20:07:20.848+0000] {subprocess.py:106} INFO - [PASS] Staging run 20261006T231240Z: quarantine/contracts.parquet matches its recorded SHA-256 and row count (0 rows)
+[2026-10-13T20:07:20.848+0000] {subprocess.py:106} INFO - [PASS] Staging run 20261006T231240Z: staging/contract_contractors.parquet matches its recorded SHA-256 and row count (253273 rows)
+[2026-10-13T20:07:20.848+0000] {subprocess.py:106} INFO - [PASS] Staging run 20261006T231240Z: staging/contracts.parquet matches its recorded SHA-256 and row count (248421 rows)
+[2026-10-13T20:07:20.848+0000] {subprocess.py:106} INFO - [PASS] Reconciliation raw -> staging: raw rows 248421 = staging rows in 248421
+[2026-10-13T20:07:20.848+0000] {subprocess.py:106} INFO - [PASS] Reconciliation staging: staged 248421 + quarantined 0 = rows in 248421
+[2026-10-13T20:07:20.849+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: curated/contract_contractors.parquet matches its recorded SHA-256 and row count (253270 rows)
+[2026-10-13T20:07:20.849+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: curated/dpwh_contracts.parquet matches its recorded SHA-256 and row count (248418 rows)
+[2026-10-13T20:07:20.849+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: curated/psgc_regions.parquet matches its recorded SHA-256 and row count (18 rows)
+[2026-10-13T20:07:20.849+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: curated/region_population.parquet matches its recorded SHA-256 and row count (18 rows)
+[2026-10-13T20:07:20.849+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: quarantine/curated/contract_contractors.parquet matches its recorded SHA-256 and row count (0 rows)
+[2026-10-13T20:07:20.849+0000] {subprocess.py:106} INFO - [PASS] Curated run 20261006T231240Z: quarantine/curated/contracts.parquet matches its recorded SHA-256 and row count (3 rows)
+[2026-10-13T20:07:20.850+0000] {subprocess.py:106} INFO - [PASS] Lineage: curated run was built from staging run 20261006T231240Z
+[2026-10-13T20:07:20.850+0000] {subprocess.py:106} INFO - [PASS] Reconciliation staging -> curated: staged rows 248421 = curated rows in 248421
+[2026-10-13T20:07:20.850+0000] {subprocess.py:106} INFO - [PASS] Reconciliation curated: curated 248418 + quarantined 3 = rows in 248421
+[2026-10-13T20:07:20.850+0000] {subprocess.py:106} INFO - [PASS] Lineage: region population was built from raw psa_openstat_population run 20261013T181909Z
+[2026-10-13T20:07:20.850+0000] {subprocess.py:106} INFO - [PASS] Population: 18 of 18 PSGC regions have a population value (Parameter: Total Population)
+[2026-10-13T20:07:20.851+0000] {subprocess.py:106} INFO - [PASS] Invariant: contract_id is present and unique in all 248418 curated rows
+[2026-10-13T20:07:20.851+0000] {subprocess.py:106} INFO - [PASS] Invariant: physical_accomplishment is within 0 to 100 wherever present
+[2026-10-13T20:07:20.851+0000] {subprocess.py:106} INFO - [PASS] Invariant: record_hash recomputed from business columns matches for every row (0 mismatches)
+[2026-10-13T20:07:20.851+0000] {subprocess.py:106} INFO - [PASS] Invariant: award_savings_php = abc_php - award_amount_php
+[2026-10-13T20:07:20.851+0000] {subprocess.py:106} INFO - [PASS] Invariant: award_to_abc_pct = award_amount_php / abc_php * 100
+[2026-10-13T20:07:20.851+0000] {subprocess.py:106} INFO - [PASS] Invariant: is_delayed follows the delay rule as of 2026-01-22 (23769 delayed)
+[2026-10-13T20:07:20.851+0000] {subprocess.py:106} INFO - [PASS] Invariant: region_matches_psgc agrees with region_psgc_code
+[2026-10-13T20:07:20.852+0000] {subprocess.py:106} INFO - [PASS] Partitions: built from the current curated file (curated run 20261006T231240Z)
+[2026-10-13T20:07:20.852+0000] {subprocess.py:106} INFO - [PASS] Partitions: all 125 partition files match _manifest.json
+[2026-10-13T20:07:20.852+0000] {subprocess.py:106} INFO - [PASS] Reconciliation curated -> partitions: 248418 partition rows = 248418 curated rows
+[2026-10-13T20:07:20.852+0000] {subprocess.py:106} INFO - [PASS] Database (all contracts): every loadable curated contract is in curated.dpwh_projects (0 missing of 248418)
+[2026-10-13T20:07:20.852+0000] {subprocess.py:106} INFO - [PASS] Database (all contracts): record_hash in the database matches the curated file (0 differ)
+[2026-10-13T20:07:20.852+0000] {subprocess.py:106} INFO - [PASS] Database: no rows outside the current curated run (0 extra)
+[2026-10-13T20:07:20.852+0000] {subprocess.py:106} INFO - Result: 35 passed, 0 failed, 0 warnings, 0 skipped
+[2026-10-13T20:07:21.081+0000] {taskinstance.py:353} INFO - Marking task as SUCCESS. dag_id=dss150p_pipeline, task_id=validate, run_id=v100__20261013T200126Z, execution_date=20261013T200139, start_date=20261013T200711, end_date=20261013T200721

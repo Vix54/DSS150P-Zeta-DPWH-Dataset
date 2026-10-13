@@ -323,6 +323,11 @@ def run_curated(settings, run_id=None, rebuild=False, now=utc_now, log=print, pi
         "region_aliases": config.get("region_aliases"),
     }
     curated, member_curated, rejected, member_rejected, region_table, summary = curate_frames(contracts, members, regions, context)
+    from src.transform.population import CURATED_POPULATION_FILE, region_population_for_curation
+
+    population_table, population_summary = region_population_for_curation(settings, regions, config.get("region_aliases"))
+    if population_table is not None:
+        log(f"Population reference run {population_summary['population_run_id']}: {population_summary['population_regions_matched']} of {len(regions)} PSGC regions matched ({population_summary['population_period']})")
 
     report = {
         "status": "complete",
@@ -334,6 +339,7 @@ def run_curated(settings, run_id=None, rebuild=False, now=utc_now, log=print, pi
         "processed_at_utc": utc_iso(processed_at),
         "record_hash_columns": list(HASH_COLUMNS),
         **summary,
+        **population_summary,
         "outputs": {},
     }
 
@@ -344,7 +350,10 @@ def run_curated(settings, run_id=None, rebuild=False, now=utc_now, log=print, pi
             report["outputs"][f"quarantine/curated/{name}"] = {"rows": int(len(frame)), "sha256": sha256_file(path)}
 
     def write_curated(directory):
-        for name, frame in ((CURATED_CONTRACTS_FILE, curated), (CURATED_MEMBERS_FILE, member_curated), (CURATED_REGIONS_FILE, region_table)):
+        tables = [(CURATED_CONTRACTS_FILE, curated), (CURATED_MEMBERS_FILE, member_curated), (CURATED_REGIONS_FILE, region_table)]
+        if population_table is not None:
+            tables.append((CURATED_POPULATION_FILE, population_table))
+        for name, frame in tables:
             path = directory / name
             frame.to_parquet(path, index=False)
             report["outputs"][f"curated/{name}"] = {"rows": int(len(frame)), "sha256": sha256_file(path)}

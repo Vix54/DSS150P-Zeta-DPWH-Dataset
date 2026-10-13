@@ -11,6 +11,13 @@ class StopScraping(Exception):
     pass
 
 
+class ChallengeDetected(StopScraping):
+    pass
+
+
+ROBOTS_CHALLENGE_POLICIES = {"stop", "documented_api"}
+
+
 class Throttle:
     def __init__(self, min_interval, clock=time.monotonic, sleep=time.sleep):
         self.min_interval = float(min_interval)
@@ -47,6 +54,8 @@ class PoliteClient:
         backoff_seconds,
         stop_on_status,
         respect_robots_txt=True,
+        accept="application/json",
+        robots_challenge="stop",
         session=None,
         clock=time.monotonic,
         sleep=time.sleep,
@@ -57,6 +66,10 @@ class PoliteClient:
         self.backoff_seconds = float(backoff_seconds)
         self.stop_on_status = set(stop_on_status)
         self.respect_robots_txt = respect_robots_txt
+        self.accept = accept
+        if robots_challenge not in ROBOTS_CHALLENGE_POLICIES:
+            raise ValueError(f"robots_challenge must be one of {sorted(ROBOTS_CHALLENGE_POLICIES)}")
+        self.robots_challenge = robots_challenge
         self.session = session or requests.Session()
         self.sleep = sleep
         self.throttle = Throttle(request_delay_seconds, clock=clock, sleep=sleep)
@@ -65,21 +78,24 @@ class PoliteClient:
         self.request_count = 0
 
     def _headers(self):
-        return {"User-Agent": self.user_agent, "Accept": "application/json"}
+        return {"User-Agent": self.user_agent, "Accept": self.accept}
 
-    def _request(self, url):
+    def _request(self, url, payload=None):
         for attempt in range(self.max_retries + 1):
             self.throttle.wait()
             self.request_count += 1
             try:
-                response = self.session.get(url, headers=self._headers(), timeout=self.timeout_seconds)
+                if payload is None:
+                    response = self.session.get(url, headers=self._headers(), timeout=self.timeout_seconds)
+                else:
+                    response = self.session.post(url, headers=self._headers(), json=payload, timeout=self.timeout_seconds)
             except requests.RequestException as exc:
                 if attempt == self.max_retries:
                     raise StopScraping(f"network error on {url} after {attempt + 1} attempts: {exc}") from exc
                 self.sleep(self.backoff_seconds * (2 ** attempt))
                 continue
             if is_challenge(response):
-                raise StopScraping(f"bot-protection challenge on {url} (HTTP {response.status_code}); stopping without retry")
+                raise ChallengeDetected(f"bot-protection challenge on {url} (HTTP {response.status_code}); stopping without retry")
             if response.status_code in self.stop_on_status:
                 raise StopScraping(f"HTTP {response.status_code} on {url}; access refused, stopping")
             if response.status_code in RETRYABLE_STATUS:
@@ -102,7 +118,18 @@ class PoliteClient:
         if origin in self.robots:
             return self.robots[origin]
         robots_url = f"{origin}/robots.txt"
-        response = self._request(robots_url)
+        try:
+            response = self._request(robots_url)
+        except ChallengeDetected:
+            if self.robots_challenge != "documented_api":
+                raise
+            self.robots_log[origin] = {
+                "url": robots_url,
+                "status": "challenge",
+                "rules": "robots.txt is not served to programs (bot-protection challenge); following the publisher's API documentation, and stopping if the API itself challenges",
+            }
+            self.robots[origin] = None
+            return None
         if response.status_code == 200:
             parser = Protego.parse(response.text)
             delay = parser.crawl_delay(self.user_agent)
@@ -117,9 +144,16 @@ class PoliteClient:
         self.robots[origin] = parser
         return parser
 
-    def get(self, url):
+    def _check_robots(self, url):
         if self.respect_robots_txt:
             parser = self._robots_for(url)
             if parser is not None and not parser.can_fetch(url, self.user_agent):
                 raise StopScraping(f"robots.txt disallows {url}")
+
+    def get(self, url):
+        self._check_robots(url)
         return self._request(url)
+
+    def post(self, url, payload):
+        self._check_robots(url)
+        return self._request(url, payload)

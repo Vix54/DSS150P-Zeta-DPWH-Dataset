@@ -17,6 +17,8 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
 from src.transform.curated import read_curated_contracts
+from src.transform.population import CURATED_POPULATION_FILE
+from src.transform.staging import sha256_file
 
 PALETTE = ["#1F4E79", "#2E86AB", "#F18F01", "#C73E1D", "#3B8B5A", "#6C757D", "#8E5572", "#4C956C"]
 NUMERIC_FEATURES = ["log_project_cost", "log_abc_php", "award_to_abc_pct", "bidder_count", "contractor_count", "is_joint_venture", "infra_year"]
@@ -106,6 +108,50 @@ def plot_importance(importance, out_dir):
     plt.close(fig)
 
 
+def plot_per_capita(per_capita, out_dir, as_of):
+    ordered = per_capita.loc[per_capita["contracts"] > 0].sort_values("delayed_per_100k", ascending=False)
+    fig, ax = plt.subplots(figsize=(10, 6))
+    bars = ax.bar(ordered["region"], ordered["delayed_per_100k"], color=PALETTE[2])
+    annotate_bars(ax, bars, [f"{value:.1f}" for value in ordered["delayed_per_100k"]])
+    ax.set_title(f"Delayed On-Going Contracts per 100,000 People by Region (as of {as_of})", fontweight="bold")
+    ax.set_ylabel("Delayed contracts per 100,000 people")
+    ax.tick_params(axis="x", rotation=60)
+    fig.tight_layout()
+    fig.savefig(out_dir / "05_delayed_per_100k.png", dpi=150)
+    plt.close(fig)
+
+
+def read_region_population(settings, report, curated_run_id):
+    key = f"curated/{CURATED_POPULATION_FILE}"
+    if key not in report.get("outputs", {}):
+        return None
+    path = Path(settings.paths["curated"]) / f"run_id={curated_run_id}" / CURATED_POPULATION_FILE
+    if sha256_file(path) != report["outputs"][key]["sha256"]:
+        raise ValueError(f"checksum mismatch for curated file {CURATED_POPULATION_FILE}; curated output was modified")
+    return pd.read_parquet(path)
+
+
+def per_capita_table(df, population, target, region_population):
+    named = region_population.dropna(subset=["population"]).copy()
+    named = named.loc[named["population"] > 0]
+    codes = df["region_psgc_code"].astype("string")
+    all_counts = codes.value_counts()
+    ongoing_codes = population["region_psgc_code"].astype("string")
+    ongoing_counts = ongoing_codes.value_counts()
+    delayed_counts = ongoing_codes.loc[population[target]].value_counts()
+    table = pd.DataFrame({
+        "psgc_code": named["psgc_code"].astype("string"),
+        "region": named["psgc_name"].astype("string"),
+        "population": named["population"].astype("int64"),
+    })
+    table["contracts"] = table["psgc_code"].map(all_counts).fillna(0).astype("int64")
+    table["ongoing"] = table["psgc_code"].map(ongoing_counts).fillna(0).astype("int64")
+    table["delayed"] = table["psgc_code"].map(delayed_counts).fillna(0).astype("int64")
+    for column in ("contracts", "ongoing", "delayed"):
+        table[f"{column}_per_100k"] = (table[column] / table["population"] * 100000).round(2)
+    return table.sort_values("delayed_per_100k", ascending=False).reset_index(drop=True)
+
+
 def feature_frame(population):
     features = population.copy()
     features["log_project_cost"] = np.log1p(pd.to_numeric(features["project_cost"], errors="coerce").astype(float).clip(lower=0))
@@ -165,7 +211,7 @@ def describe_auc(value):
     return "strong"
 
 
-def build_insights(summary, rates, metrics, ranked):
+def build_insights(summary, rates, metrics, ranked, per_capita=None, population_period=None):
     lines = [
         "# Delay analysis of curated DPWH contracts",
         "",
@@ -188,13 +234,29 @@ def build_insights(summary, rates, metrics, ranked):
     if len(rates):
         top = rates.sort_values("delay_rate_pct", ascending=False)
         lines.append(f"- Highest regional delay rate: {top.index[0]} at {top.iloc[0]['delay_rate_pct']:.1f}% of {int(top.iloc[0]['contracts']):,} On-Going contracts; lowest: {top.index[-1]} at {top.iloc[-1]['delay_rate_pct']:.1f}% of {int(top.iloc[-1]['contracts']):,} (regions with at least {MIN_GROUP} On-Going contracts).")
-    lines += ["", "## Delay model", ""]
+    with_contracts = per_capita.loc[per_capita["contracts"] > 0] if per_capita is not None else None
+    if with_contracts is not None and len(with_contracts):
+        high = with_contracts.iloc[0]
+        low = with_contracts.iloc[-1]
+        lines += [
+            "",
+            "## Per-capita view",
+            "",
+            f"- Population from PSA OpenSTAT ({population_period}), joined to the contracts on the PSGC region code for {len(per_capita)} regions.",
+            f"- Most delayed On-Going contracts per 100,000 people: {high['region']} at {high['delayed_per_100k']:.2f} ({int(high['delayed']):,} delayed, population {int(high['population']):,}); fewest: {low['region']} at {low['delayed_per_100k']:.2f} ({int(low['delayed']):,} delayed, population {int(low['population']):,}), among regions with contracts in the source.",
+        ]
+        without = per_capita.loc[per_capita["contracts"] == 0, "region"].tolist()
+        if without:
+            lines.append(f"- No contracts in the source for: {', '.join(without)}. These regions are left out of the comparison rather than counted as zero delays.")
+        lines.append("- Per-capita counts compare regions of different size; they do not account for project size, cost or need, so a higher value is not a judgement on a region.")
+    lines += ["", "## Exploratory delay classification", ""]
     if metrics is None:
         lines.append("- Not trained: the On-Going population was too small or had only one class.")
     else:
         top_features = ", ".join(f"{row.feature} ({row.importance:.3f})" for row in ranked.head(3).itertuples())
         lines += [
-            f"- Gradient-boosted trees on {metrics['population']:,} On-Going contracts ({metrics['positive_rate_pct']:.1f}% delayed), tuned with {len(GRID['model__learning_rate']) * len(GRID['model__max_depth'])}-setting grid search and {metrics['cv_folds']}-fold cross-validation.",
+            f"- Exploratory classification within one snapshot (as of {summary['as_of']}): it shows which recorded attributes separate delayed from on-schedule contracts in this snapshot. It is not a forecast of future delays and does not establish causes; that would need dated snapshots and time-based validation.",
+            f"- HistGradientBoostingClassifier (gradient-boosted trees) on {metrics['population']:,} On-Going contracts ({metrics['positive_rate_pct']:.1f}% delayed), tuned with {len(GRID['model__learning_rate']) * len(GRID['model__max_depth'])}-setting grid search and {metrics['cv_folds']}-fold cross-validation.",
             f"- Held-out ROC AUC {metrics['test_roc_auc']:.3f} ({describe_auc(metrics['test_roc_auc'])}; 0.5 is chance) and balanced accuracy {metrics['test_balanced_accuracy']:.3f} (0.5 for always predicting one class).",
             f"- Most informative features by permutation importance: {top_features}.",
             f"- Excluded because they define the delay flag or carry the contract timeline it is computed from: {', '.join(metrics['excluded_features'])}.",
@@ -210,7 +272,7 @@ def run_analytics(settings, run_id=None, log=print):
     out_dir = Path(settings.paths["analytics"])
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    curated_run_id, curated, _ = read_curated_contracts(settings, run_id)
+    curated_run_id, curated, report = read_curated_contracts(settings, run_id)
     df = curated.copy()
     explore(df, log)
 
@@ -240,7 +302,16 @@ def run_analytics(settings, run_id=None, log=print):
     rates = rates.loc[rates["contracts"] >= MIN_GROUP]
     log(f"Delay rate by region (at least {MIN_GROUP} On-Going contracts):\n{rates.sort_values('delay_rate_pct', ascending=False).round(2).to_string()}")
 
+    population_period = report.get("population_period")
+    region_population = read_region_population(settings, report, curated_run_id)
+    per_capita = per_capita_table(df, population, target, region_population) if region_population is not None else None
+    if per_capita is not None:
+        log(f"Per-capita view ({population_period}):\n{per_capita[['region', 'population', 'contracts', 'delayed', 'delayed_per_100k']].to_string(index=False)}")
+
+
     plot_status_counts(df, out_dir)
+    if per_capita is not None and len(per_capita):
+        plot_per_capita(per_capita, out_dir, as_of)
     if len(rates):
         plot_region_delay(rates, out_dir, as_of)
     if len(population):
@@ -251,9 +322,17 @@ def run_analytics(settings, run_id=None, log=print):
     if ranked is not None:
         plot_importance(ranked, out_dir)
 
-    insights = build_insights(summary, rates, metrics, ranked)
+    insights = build_insights(summary, rates, metrics, ranked, per_capita, population_period)
     (out_dir / "insights.md").write_text(insights, encoding="utf-8")
-    (out_dir / "analytics_metrics.json").write_text(json.dumps({"summary": summary, "model": metrics, "regions": rates.round(4).reset_index().to_dict(orient="records")}, indent=2, default=str), encoding="utf-8")
+    payload = {
+        "summary": summary,
+        "model": metrics,
+        "model_framing": "exploratory classification within one snapshot; not a forecast and not causal",
+        "regions": rates.round(4).reset_index().to_dict(orient="records"),
+        "per_capita": None if per_capita is None else per_capita.to_dict(orient="records"),
+        "population_period": population_period,
+    }
+    (out_dir / "analytics_metrics.json").write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
     log(insights)
     log(f"Charts, insights.md and analytics_metrics.json saved to {out_dir}")
     return summary, metrics

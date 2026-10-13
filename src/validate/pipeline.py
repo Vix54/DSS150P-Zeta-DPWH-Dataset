@@ -54,7 +54,8 @@ def check_outputs(results, report, locations, label):
 
 def validate_raw(settings, results):
     runs = {}
-    for name, config in sorted((settings.raw.get("file_sources") or {}).items()):
+    sources = {**(settings.raw.get("file_sources") or {}), **(settings.raw.get("api_sources") or {})}
+    for name, config in sorted(sources.items()):
         root = lane_root(settings.paths["raw"], name)
         try:
             run_id = staging.latest_run_id(root)
@@ -68,7 +69,7 @@ def validate_raw(settings, results):
         except RawStoreError as exc:
             results.add(False, f"Raw {name} run {run_id}: {exc}")
             continue
-        expected = str(config["expected_sha256"]).strip().lower()
+        expected = str(config.get("expected_sha256") or "").strip().lower()
         recorded = {entry["sha256"] for entry in run.manifest_entries()}
         results.add(expected in recorded, f"Raw {name} run {run_id}: stored file hash equals expected_sha256 in config/settings.yml")
         runs[name] = run
@@ -104,7 +105,24 @@ def validate_staging(settings, results, raw_runs):
     return run_id, report
 
 
-def validate_curated(settings, results, staging_result):
+def validate_population(results, report, raw_runs):
+    name = report.get("population_source")
+    if not name:
+        return
+    run = (raw_runs or {}).get(name)
+    if run is not None:
+        results.add(report.get("population_run_id") == run.run_id, f"Lineage: region population was built from raw {name} run {run.run_id}")
+    missing = report.get("psgc_regions_without_population") or []
+    matched = int(report.get("population_regions_matched", 0))
+    blank = int(report.get("population_regions_missing_value", 0))
+    total = matched + len(missing)
+    message = f"Population: {matched - blank} of {total} PSGC regions have a population value ({report.get('population_period', '')})"
+    if missing:
+        message += f"; missing: {', '.join(missing)}"
+    results.add(not missing and blank == 0, message, otherwise=WARN)
+
+
+def validate_curated(settings, results, staging_result, raw_runs=None):
     try:
         run_id, report = curated.read_curated_report(settings)
     except curated.CuratedError as exc:
@@ -119,6 +137,7 @@ def validate_curated(settings, results, staging_result):
         results.add(report["rows_in"] == staging_report["rows_staged"], f"Reconciliation staging -> curated: staged rows {staging_report['rows_staged']} = curated rows in {report['rows_in']}")
     total = report["rows_curated"] + report["rows_quarantined"]
     results.add(total == report["rows_in"], f"Reconciliation curated: curated {report['rows_curated']} + quarantined {report['rows_quarantined']} = rows in {report['rows_in']}")
+    validate_population(results, report, raw_runs)
     contracts = directory / curated.CURATED_CONTRACTS_FILE
     intact = contracts.exists() and staging.sha256_file(contracts) == report["outputs"][f"curated/{curated.CURATED_CONTRACTS_FILE}"]["sha256"]
     return run_id, report, intact
@@ -216,7 +235,7 @@ def run_validation(settings, skip_db=False, year=None, month=None, engine=None, 
     results = Results()
     raw_runs = validate_raw(settings, results)
     staging_result = validate_staging(settings, results, raw_runs)
-    curated_result = validate_curated(settings, results, staging_result)
+    curated_result = validate_curated(settings, results, staging_result, raw_runs)
     if curated_result is not None and not curated_result[2]:
         results.note(SKIP, "Calculation, partition and database checks skipped because the curated contracts file failed its checksum")
     elif curated_result is not None:

@@ -5,7 +5,7 @@ class FakeResponse:
     def __init__(self, status_code=200, body=b"{}", headers=None):
         self.status_code = status_code
         self.content = body
-        self.text = body.decode("utf-8")
+        self.text = body.decode("utf-8", errors="replace")
         self.headers = CaseInsensitiveDict(headers or {"content-type": "application/json"})
 
 
@@ -16,6 +16,12 @@ class FakeSession:
 
     def get(self, url, headers=None, timeout=None):
         self.calls.append((url, headers))
+        queue = self.routes[url]
+        return queue.pop(0) if len(queue) > 1 else queue[0]
+
+    def post(self, url, headers=None, json=None, timeout=None):
+        self.calls.append((url, headers))
+        self.posted = getattr(self, "posted", []) + [json]
         queue = self.routes[url]
         return queue.pop(0) if len(queue) > 1 else queue[0]
 
