@@ -174,7 +174,7 @@ Storage and Query Benchmarks (Median of 5 runs; 248,418 rows $\times$ 43 columns
 | **Secondary Validation** | Reconcile curated status totals against `docs/reconciliation_baseline.md`. Perform browser-based manual spot-checks on 30 randomly sampled contracts (`random_state=42`). Profile nested structures (`components`, `bidders`, `coordinates`) and investigate the remaining 40 winner-name edge cases. |
 | **Supplemental Data Ingestion** | Ingest verified secondary datasets strictly to corroborate existing entities; secondary sources must never overwrite primary records. Admission of PhilGEPS Open Data is pending confirmation of its download availability and terms. |
 | **Source Revisions** | When OpenSTAT revises its table, `extract-file` stops with the new SHA-256. Review the change, record the new value in `config/settings.yml`, rerun and recapture the affected evidence. |
-| **Stale Evidence** | `docs/evidence/airflow_diagnostics.md` describes a superseded Airflow setup and is kept only as history; current Airflow evidence is `docs/evidence/30`–`31`. |
+| **Development History** | `docs/history/airflow_first_dag.md` records the first Airflow setup; current Airflow evidence is `docs/evidence/30`, `31` and `39`. |
 
 ---
 

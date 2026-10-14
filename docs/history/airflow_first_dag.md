@@ -1,4 +1,4 @@
-> **Historical document.** This page describes an earlier version of the Airflow setup: a DAG called `dpwh_modular_pipeline` that read a CSV export, with different task names and a database-connection failure. That DAG is no longer in the repository. The current DAG is `dss150p_pipeline` (`dags/dss150p_pipeline.py`); its evidence is `30_airflow_dag_runs.txt`, `31_airflow_task_logs.txt`, `39_airflow_v100_run.txt` and the screenshots `docs/images/airflow_01_grid.png` to `airflow_06_validate_run_a.png`. The page is kept unchanged below as a record of how the orchestration developed.
+> **Development history.** This page records the first Airflow DAG, `dpwh_modular_pipeline`, which read a CSV export and used different task names. It was replaced by `dss150p_pipeline` (`dags/dss150p_pipeline.py`), whose runs are evidence 30, 31 and 39 and the screenshots `docs/images/airflow_01_grid.png` to `airflow_08_v100_graph.png`.
 
 # Apache Airflow Orchestration & Diagnostics
 **Project:** Group Zeta DPWH Infrastructure Pipeline

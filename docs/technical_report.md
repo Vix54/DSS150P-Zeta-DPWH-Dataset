@@ -122,4 +122,4 @@ Every result above comes from a captured transcript in [`docs/evidence/`](eviden
 | 32–38 | v1.0.0: automated retrieval of every source, unchanged rerun, rebuild, load, validation, analysis and the rebuild on a second machine |
 | 39 | v1.0.0 DAG run in the Airflow container |
 
-`docs/evidence/airflow_diagnostics.md` describes an older CSV pipeline and is kept only as history; it is not evidence for the current DAG.
+`docs/history/airflow_first_dag.md` records the first, CSV-based Airflow DAG as development history; the current DAG's evidence is 30, 31 and 39.
