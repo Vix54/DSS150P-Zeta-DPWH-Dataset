@@ -39,3 +39,5 @@ data/partitioned/*
 
 # Keep directory structures intact for cloning
 !data/**/.gitkeep
+!docs/data_product/*.csv
+!docs/data_product/*.parquet

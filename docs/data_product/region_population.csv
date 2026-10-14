@@ -1,0 +1,19 @@
+psgc_code,psgc_name,source_label,population,period
+0100000000,Region I (Ilocos Region),Region I (Ilocos Region),5342453,Parameter: Total Population
+0200000000,Region II (Cagayan Valley),Region II (Cagayan Valley),3777608,Parameter: Total Population
+0300000000,Region III (Central Luzon),Region III (Central Luzon),12989074,Parameter: Total Population
+0400000000,Region IV-A (CALABARZON),Region IV-A (CALABARZON),16933234,Parameter: Total Population
+0500000000,Region V (Bicol Region),Region V (Bicol Region),6064426,Parameter: Total Population
+0600000000,Region VI (Western Visayas),Region VI (Western Visayas),4861911,Parameter: Total Population
+0700000000,Region VII (Central Visayas),Region VII (Central Visayas),6640875,Parameter: Total Population
+0800000000,Region VIII (Eastern Visayas),Region VIII (Eastern Visayas),4625929,Parameter: Total Population
+0900000000,Region IX (Zamboanga Peninsula),Region IX (Zamboanga Peninsula),5089934,Parameter: Total Population
+1000000000,Region X (Northern Mindanao),Region X (Northern Mindanao),5178326,Parameter: Total Population
+1100000000,Region XI (Davao Region),Region XI (Davao Region),5389422,Parameter: Total Population
+1200000000,Region XII (SOCCSKSARGEN),Region XII (SOCCSKSARGEN),4462776,Parameter: Total Population
+1300000000,National Capital Region (NCR),National Capital Region (NCR),14001751,Parameter: Total Population
+1400000000,Cordillera Administrative Region (CAR),Cordillera Administrative Region (CAR),1808985,Parameter: Total Population
+1600000000,Region XIII (Caraga),Region XIII (Caraga),2865196,Parameter: Total Population
+1700000000,MIMAROPA Region,MIMAROPA Region,3245446,Parameter: Total Population
+1800000000,Negros Island Region (NIR),Negros Island Region (NIR) 3/,4904944,Parameter: Total Population
+1900000000,Bangsamoro Autonomous Region In Muslim Mindanao (BARMM),Bangsamoro Autonomous Region In Muslim Mindanao (BARMM),4545486,Parameter: Total Population
