@@ -158,6 +158,14 @@ Descriptive statistics, five charts, a per-capita view and an exploratory delay 
 
 The classifier (scikit-learn `HistGradientBoostingClassifier`) only uses On-Going contracts and excludes the columns that define the delay flag (progress, status and the contract dates). It is exploratory classification within one snapshot of the source (delay rule as of 2026-01-22): it shows which recorded attributes separate delayed from on-schedule contracts in that snapshot. It is not a forecast of future delays and does not establish causes; that would need dated snapshots and time-based validation.
 
+## Data product sample (for reviewers)
+
+```bash
+python -m src.cli sample
+```
+
+Writes `docs/data_product/`: 1,000 curated contracts drawn with `random_state=42` (CSV and Parquet), the region population table, the generated `insights.md` and `analytics_metrics.json`, the five charts, `sample_manifest.json` and `SHA256SUMS`. Run `analyze` first. The folder is committed, so the final data product can be inspected without a rebuild; check it with `sha256sum -c SHA256SUMS` from inside the folder.
+
 ## Full run
 
 ```bash
