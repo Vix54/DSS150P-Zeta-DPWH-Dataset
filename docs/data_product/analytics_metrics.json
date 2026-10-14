@@ -1,0 +1,343 @@
+{
+  "summary": {
+    "curated_run_id": "20261014T050858Z",
+    "as_of": "2026-01-22",
+    "rows": 248418,
+    "ongoing": 34728,
+    "delayed": 23769,
+    "delay_rate_pct": 68.44,
+    "median_cost_delayed": 24474916.61,
+    "median_cost_on_schedule": 24699999.3,
+    "median_cost_ratio": 0.9909
+  },
+  "model": {
+    "population": 34728,
+    "train_rows": 27782,
+    "test_rows": 6946,
+    "positive_rate_pct": 68.44,
+    "best_params": {
+      "learning_rate": 0.1,
+      "max_depth": 6,
+      "max_iter": 200
+    },
+    "cv_roc_auc": 0.7,
+    "test_roc_auc": 0.7011,
+    "test_balanced_accuracy": 0.5999,
+    "cv_folds": 3,
+    "features": [
+      "log_project_cost",
+      "log_abc_php",
+      "award_to_abc_pct",
+      "bidder_count",
+      "contractor_count",
+      "is_joint_venture",
+      "infra_year",
+      "category",
+      "region"
+    ],
+    "excluded_features": [
+      "physical_accomplishment",
+      "status_name",
+      "expiry_date",
+      "contract_effectivity_date",
+      "start_date",
+      "completion_date",
+      "date_of_award",
+      "delay_as_of_date"
+    ]
+  },
+  "model_framing": "exploratory classification within one snapshot; not a forecast and not causal",
+  "regions": [
+    {
+      "region": "Central Office",
+      "contracts": 105,
+      "delay_rate_pct": 64.7619
+    },
+    {
+      "region": "Cordillera Administrative Region",
+      "contracts": 1581,
+      "delay_rate_pct": 68.754
+    },
+    {
+      "region": "National Capital Region",
+      "contracts": 2308,
+      "delay_rate_pct": 67.591
+    },
+    {
+      "region": "Negros Island Region",
+      "contracts": 1133,
+      "delay_rate_pct": 67.0786
+    },
+    {
+      "region": "Region I",
+      "contracts": 3039,
+      "delay_rate_pct": 80.1579
+    },
+    {
+      "region": "Region II",
+      "contracts": 1949,
+      "delay_rate_pct": 58.2863
+    },
+    {
+      "region": "Region III",
+      "contracts": 2930,
+      "delay_rate_pct": 72.0819
+    },
+    {
+      "region": "Region IV-A",
+      "contracts": 3872,
+      "delay_rate_pct": 70.8161
+    },
+    {
+      "region": "Region IV-B",
+      "contracts": 1036,
+      "delay_rate_pct": 69.4981
+    },
+    {
+      "region": "Region IX",
+      "contracts": 1855,
+      "delay_rate_pct": 66.1995
+    },
+    {
+      "region": "Region V",
+      "contracts": 3396,
+      "delay_rate_pct": 69.9647
+    },
+    {
+      "region": "Region VI",
+      "contracts": 1750,
+      "delay_rate_pct": 79.4286
+    },
+    {
+      "region": "Region VII",
+      "contracts": 1769,
+      "delay_rate_pct": 68.8525
+    },
+    {
+      "region": "Region VIII",
+      "contracts": 2644,
+      "delay_rate_pct": 62.4433
+    },
+    {
+      "region": "Region X",
+      "contracts": 1751,
+      "delay_rate_pct": 50.5425
+    },
+    {
+      "region": "Region XI",
+      "contracts": 1976,
+      "delay_rate_pct": 68.8765
+    },
+    {
+      "region": "Region XII",
+      "contracts": 696,
+      "delay_rate_pct": 54.3103
+    },
+    {
+      "region": "Region XIII",
+      "contracts": 938,
+      "delay_rate_pct": 70.4691
+    }
+  ],
+  "per_capita": [
+    {
+      "psgc_code": "1400000000",
+      "region": "Cordillera Administrative Region (CAR)",
+      "population": 1808985,
+      "contracts": 9944,
+      "ongoing": 1581,
+      "delayed": 1087,
+      "contracts_per_100k": 549.7,
+      "ongoing_per_100k": 87.4,
+      "delayed_per_100k": 60.09
+    },
+    {
+      "psgc_code": "0100000000",
+      "region": "Region I (Ilocos Region)",
+      "population": 5342453,
+      "contracts": 17891,
+      "ongoing": 3039,
+      "delayed": 2436,
+      "contracts_per_100k": 334.88,
+      "ongoing_per_100k": 56.88,
+      "delayed_per_100k": 45.6
+    },
+    {
+      "psgc_code": "0500000000",
+      "region": "Region V (Bicol Region)",
+      "population": 6064426,
+      "contracts": 16400,
+      "ongoing": 3396,
+      "delayed": 2376,
+      "contracts_per_100k": 270.43,
+      "ongoing_per_100k": 56.0,
+      "delayed_per_100k": 39.18
+    },
+    {
+      "psgc_code": "0800000000",
+      "region": "Region VIII (Eastern Visayas)",
+      "population": 4625929,
+      "contracts": 15536,
+      "ongoing": 2644,
+      "delayed": 1651,
+      "contracts_per_100k": 335.85,
+      "ongoing_per_100k": 57.16,
+      "delayed_per_100k": 35.69
+    },
+    {
+      "psgc_code": "0200000000",
+      "region": "Region II (Cagayan Valley)",
+      "population": 3777608,
+      "contracts": 14187,
+      "ongoing": 1949,
+      "delayed": 1136,
+      "contracts_per_100k": 375.56,
+      "ongoing_per_100k": 51.59,
+      "delayed_per_100k": 30.07
+    },
+    {
+      "psgc_code": "0600000000",
+      "region": "Region VI (Western Visayas)",
+      "population": 4861911,
+      "contracts": 13060,
+      "ongoing": 1750,
+      "delayed": 1390,
+      "contracts_per_100k": 268.62,
+      "ongoing_per_100k": 35.99,
+      "delayed_per_100k": 28.59
+    },
+    {
+      "psgc_code": "1100000000",
+      "region": "Region XI (Davao Region)",
+      "population": 5389422,
+      "contracts": 14213,
+      "ongoing": 1976,
+      "delayed": 1361,
+      "contracts_per_100k": 263.72,
+      "ongoing_per_100k": 36.66,
+      "delayed_per_100k": 25.25
+    },
+    {
+      "psgc_code": "0900000000",
+      "region": "Region IX (Zamboanga Peninsula)",
+      "population": 5089934,
+      "contracts": 9308,
+      "ongoing": 1855,
+      "delayed": 1228,
+      "contracts_per_100k": 182.87,
+      "ongoing_per_100k": 36.44,
+      "delayed_per_100k": 24.13
+    },
+    {
+      "psgc_code": "1600000000",
+      "region": "Region XIII (Caraga)",
+      "population": 2865196,
+      "contracts": 9290,
+      "ongoing": 938,
+      "delayed": 661,
+      "contracts_per_100k": 324.24,
+      "ongoing_per_100k": 32.74,
+      "delayed_per_100k": 23.07
+    },
+    {
+      "psgc_code": "1700000000",
+      "region": "MIMAROPA Region",
+      "population": 3245446,
+      "contracts": 11008,
+      "ongoing": 1036,
+      "delayed": 720,
+      "contracts_per_100k": 339.18,
+      "ongoing_per_100k": 31.92,
+      "delayed_per_100k": 22.18
+    },
+    {
+      "psgc_code": "0700000000",
+      "region": "Region VII (Central Visayas)",
+      "population": 6640875,
+      "contracts": 13884,
+      "ongoing": 1769,
+      "delayed": 1218,
+      "contracts_per_100k": 209.07,
+      "ongoing_per_100k": 26.64,
+      "delayed_per_100k": 18.34
+    },
+    {
+      "psgc_code": "1000000000",
+      "region": "Region X (Northern Mindanao)",
+      "population": 5178326,
+      "contracts": 15615,
+      "ongoing": 1751,
+      "delayed": 885,
+      "contracts_per_100k": 301.55,
+      "ongoing_per_100k": 33.81,
+      "delayed_per_100k": 17.09
+    },
+    {
+      "psgc_code": "0300000000",
+      "region": "Region III (Central Luzon)",
+      "population": 12989074,
+      "contracts": 25407,
+      "ongoing": 2930,
+      "delayed": 2112,
+      "contracts_per_100k": 195.6,
+      "ongoing_per_100k": 22.56,
+      "delayed_per_100k": 16.26
+    },
+    {
+      "psgc_code": "0400000000",
+      "region": "Region IV-A (CALABARZON)",
+      "population": 16933234,
+      "contracts": 25127,
+      "ongoing": 3872,
+      "delayed": 2742,
+      "contracts_per_100k": 148.39,
+      "ongoing_per_100k": 22.87,
+      "delayed_per_100k": 16.19
+    },
+    {
+      "psgc_code": "1800000000",
+      "region": "Negros Island Region (NIR)",
+      "population": 4904944,
+      "contracts": 9961,
+      "ongoing": 1133,
+      "delayed": 760,
+      "contracts_per_100k": 203.08,
+      "ongoing_per_100k": 23.1,
+      "delayed_per_100k": 15.49
+    },
+    {
+      "psgc_code": "1300000000",
+      "region": "National Capital Region (NCR)",
+      "population": 14001751,
+      "contracts": 16908,
+      "ongoing": 2308,
+      "delayed": 1560,
+      "contracts_per_100k": 120.76,
+      "ongoing_per_100k": 16.48,
+      "delayed_per_100k": 11.14
+    },
+    {
+      "psgc_code": "1200000000",
+      "region": "Region XII (SOCCSKSARGEN)",
+      "population": 4462776,
+      "contracts": 10382,
+      "ongoing": 696,
+      "delayed": 378,
+      "contracts_per_100k": 232.64,
+      "ongoing_per_100k": 15.6,
+      "delayed_per_100k": 8.47
+    },
+    {
+      "psgc_code": "1900000000",
+      "region": "Bangsamoro Autonomous Region In Muslim Mindanao (BARMM)",
+      "population": 4545486,
+      "contracts": 0,
+      "ongoing": 0,
+      "delayed": 0,
+      "contracts_per_100k": 0.0,
+      "ongoing_per_100k": 0.0,
+      "delayed_per_100k": 0.0
+    }
+  ],
+  "population_period": "Parameter: Total Population"
+}

@@ -312,6 +312,19 @@ def month_number(value):
     return number
 
 
+def sample(args):
+    from src.analytics.data_product import DataProductError, export_data_product
+    from src.transform.curated import CuratedError
+
+    try:
+        settings = load_settings()
+        export_data_product(settings, rows=args.rows, run_id=args.run_id)
+    except (ConfigError, CuratedError, DataProductError) as exc:
+        print(f"[FAIL] {exc}")
+        return 1
+    return 0
+
+
 def build_parser():
     parser = argparse.ArgumentParser(
         prog="python -m src.cli",
@@ -441,6 +454,13 @@ def build_parser():
     )
     analyze_parser.add_argument("--run-id", default=None, help="Curated run to analyse (default: the latest).")
     analyze_parser.set_defaults(handler=analyze)
+    sample_parser = subparsers.add_parser(
+        "sample",
+        help="Write a seeded sample of the curated contracts with the analytics outputs to docs/data_product/ for review without a rebuild.",
+    )
+    sample_parser.add_argument("--rows", type=positive_int, default=1000, help="Number of curated contracts in the sample (default: 1000).")
+    sample_parser.add_argument("--run-id", default=None, help="Curated run to sample (default: the latest).")
+    sample_parser.set_defaults(handler=sample)
     return parser
 
 
